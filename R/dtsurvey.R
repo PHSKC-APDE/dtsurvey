@@ -7,62 +7,56 @@
 #' @param nest logical. If true, will renest PSUs within strata.
 #'             If false, PSUs will be accepted as is and will throw an error when PSUs belong to multiple strata
 #'
+#' @importFrom data.table data.table ":=" ".SD" ".GRP" ".I" copy
+#' @export
 #'
 dtsurvey = function(DT, psu = NULL, strata = NULL, weight = NULL, nest = TRUE){
 
-  DT = data.table(DT)
+  DT = data.table::data.table(DT)
 
   #confirm that all the specified columns are in the dataset
-
-  #confirm that there is no missing
-
-  #add the various attributes
-
-  #process the PSUs
-    # make sure they exist
-    # make sure there are no NAs
-    # survey package converts to character from factor (not sure why)
-    # store the PSUs in an attribute
-
-  #process the weights
-    #if NULL, set to 1
-    #if !NULL, make sure there are no NAs
-    #store the weights in an attribute
-
-  #process strata
-    #if null, set to 1
-    #if !NULL check for NAs
-    #store the strata in an attribute
-
-  #construct psu/strata relations (ln ~145)
-    # survey package checks if there is only one PSU (after check whether there is a valid strata and nesting is on) (line 145)
-    # Nest subclusters in cluster
-    # force clusters into strata
-    # force substrata to nest in clusters
-
-
-
-  if(!is.null(psu)){
-    setattr(DT, 'psu', DT[, .SD, .SDcols = psu][[1]])
-  }else{
-    setattr(DT, 'psu', rep(1, nrow(DT)))
+  cols = setdiff(c(psu, strata, weight), names(DT))
+  if(length(cols)>0){
+    stop(paste('These columns were not found in DT:'), paste0(cols, collapse = ', '))
   }
 
-  if(!is.null(weight)){
-    setattr(DT, 'weight', DT[, .SD, .SDcols = weight][[1]])
-  }else{
-    setattr(DT, 'weight', rep(1, nrow(DT)))
+  sdes = data.table::copy(DT[, .SD, .SDcols = c(psu, strata, weight)])
+
+  if(is.null(psu)){
+    sdes[, psu := .I]
   }
 
-  if(!is.null(strata)){
-    setattr(DT, 'strata', DT[, .SD, .SDcols = strata][[1]])
-  }else{
-    setattr(DT, 'strata', rep(1, nrow(DT)))
+  if(is.null(weight)){
+    sdes[, weight := rep(1, nrow(DT))]
   }
 
+  if(is.null(strata)){
+    sdes[, strata := rep(1, nrow(DT))]
+  }
 
   #create a row id to help keep track of which rows are active
   DT[, `_id` := .I]
+  sdes[, `_id` := .I]
+  #confirm that there is no missing design variables
+  miss = unlist(sdes[, lapply(.SD, function(x) sum(is.na(x)))])[1:3]
+
+  if(any(miss>0)){
+    stop(paste0('NA values found in the inputs for: ', paste0(c('psu', 'weight','strata')[miss>0], collapse = ', ')))
+  }
+
+  if(nest){
+    sdes[, psu := .GRP, by = c(strata, psu)]
+  }
+
+  #confirm PSUs are nested within strata
+  nests =unique(sdes[, .(strata, psu)])
+  if(any(nests[, .N, psu]$N>1)){
+    stop('Some PSUs are in multiple strata. Did you forget to set nest = TRUE ?')
+  }
+
+  sdes[, sampsize := length(unique(psu)), strata]
+
+  data.table::setattr(DT, 'sdes', sdes)
 
   return(DT)
 
