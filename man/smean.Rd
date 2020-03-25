@@ -2,26 +2,36 @@
 % Please edit documentation in R/survey_calcs.R
 \name{smean}
 \alias{smean}
-\alias{smean.numeric}
 \alias{smean.default}
-\alias{smean.factor}
+\alias{smean.character}
 \title{Calculate the survey mean}
 \usage{
 smean(x, ...)
 
-\method{smean}{numeric}(x, na.rm = T, ids)
+\method{smean}{default}(x, na.rm = T, ids, var_type = "se", ci = 0.95, ci_method = "mean")
 
-\method{smean}{default}(x, na.rm = T, ids)
-
-\method{smean}{factor}(x, na.rm = T, ids)
+\method{smean}{character}(x, ...)
 }
 \arguments{
-\item{x}{vector Vector of values to compute a weighted mean over}
+\item{x}{vector. Vector of values to compute a weighted mean over}
 
 \item{na.rm}{logical. Passed to `weighted.mean`}
 
 \item{ids}{numeric. list of indices which are being computed}
+
+\item{var_type}{character. Report variability as one or more of: standard error ("se", default) and confidence interval ("ci")}
+
+\item{ci}{numeric. A value in the range of (0, 1) denoting what level of confidence the CI should be}
+
+\item{ci_method}{character. Determines how the ci (if requested via \code{var_type}) should be calculated
+Options beside "mean" are only relevant for proportion (e.g. logical or values )}
 }
 \description{
 Calculate the survey mean
+
+smean.default <- function(x, na.rm = T, ids){
+  stop_assignment()
+  xcl = class(x)
+  stop(paste("Don't know how to deal with objects of class(es):", paste0(xcl, collapse = ', ')))
+}
 }
