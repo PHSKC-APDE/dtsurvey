@@ -35,28 +35,27 @@ smean.default = function(x, na.rm = T, ids, var_type = 'se', ci = .95, ci_method
     x = matrix(x, ncol = 1)
   }
 
-  r = x * sv$weight[ids]/sum(sv$weight[ids])
-
-
   psum<-sum(sv$weight[ids])
-  average<-colSums(x*sum(sv$weight[ids])/psum)
+  average<-colSums(x*sv$weight[ids]/psum)
   x<-sweep(x,2,average)
   # v<-svyrecvar(x*pweights/psum,design$cluster,design$strata, design$fpc,
   #              postStrata=design$postStrata)
 
 
-  ret = list(mean = colSums(r))
+  ret = list(mean = average)
 
   if(!all(is.null(var_type))){
-    v<-survey::svyrecvar((x - sum(r))*sv$weight[ids]/sum(sv$weight[ids]),
+    v<-survey::svyrecvar(x *sv$weight[ids]/psum,
                          data.frame(psu = sv$psu[ids]),
                          data.frame(strata = sv$strata[ids]),
                          list(popsize = NULL, sampsize = as.matrix(sv$sampsize[ids], ncol = 1)),
                          postStrata=NULL)
 
-    if (is.matrix(v))
+    if (is.matrix(v)){
       se <- sqrt(diag(v))
-    else se <- sqrt(v)
+    }else{
+      se <- sqrt(v)
+    }
 
     if(any('se' %in% var_type)){
       ret$se = se
