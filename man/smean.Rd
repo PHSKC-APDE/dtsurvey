@@ -15,7 +15,7 @@ smean(x, ...)
   var_type = "none",
   ci_method = "mean",
   level = 0.95,
-  df = Inf
+  use_df = T
 )
 
 \method{smean}{character}(x, ...)
@@ -30,12 +30,21 @@ smean(x, ...)
 \item{var_type}{character. Report variability as one or more of: standard error ("se", default) and confidence interval ("ci")}
 
 \item{ci_method}{character. Determines how the ci (if requested via \code{var_type}) should be calculated
-Options beside "mean" are only relevant for proportion (e.g. logical or values )}
+Options beside "mean" are only relevant for proportion (e.g. logical or values).
+When the method is 'mean', the results should match \code{survey::svymean} while other options match \code{survey::svyciprop}}
 
 \item{level}{numeric. A value in the range of (0, 1) denoting what level of confidence the CI should be}
 
-\item{df}{numeric. Degrees of freedom}
+\item{use_df}{logical. Should the estimated degrees of freedom by used to calculate CIs? Default is TRUE. FALSE implies df = Inf.
+\code{confint(survey::svymean())} uses Inf as a default while \code{confint(survey::svyciprop)} uses \code{degf(design)}}
+}
+\value{
+a list. Entry 1 is the result of the calculation (e.g. the mean value). Other item entries are (optionally) the se, lower, and upper.
 }
 \description{
 Calculate the survey mean
+}
+\details{
+When x is a factor, results are returned in order of \code{levels(x)}.
+         When \code{smean} is called without assignment (e.g. \code{:=}), the result value will translate from a list to a data.table, even if only the mean is returned.
 }
