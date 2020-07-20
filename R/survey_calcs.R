@@ -4,24 +4,37 @@
 #' @param na.rm logical. Passed to `weighted.mean`
 #' @param ids numeric. list of indices which are being computed
 #' @param var_type character. Report variability as one or more of: standard error ("se", default) and confidence interval ("ci")
-#' @param ci numeric. A value in the range of (0, 1) denoting what level of confidence the CI should be
+#' @param level numeric. A value in the range of (0, 1) denoting what level of confidence the CI should be
 #' @param ci_method character. Determines how the ci (if requested via \code{var_type}) should be calculated
-#'                  Options beside "mean" are only relevant for proportion (e.g. logical or values )
+#'                  Options beside "mean" are only relevant for proportion (e.g. logical or values).
+#'                  When the method is 'mean', the results should match \code{survey::svymean} while other options match \code{survey::svyciprop}
+#' @param df numeric. Degrees of freedom
 #' @export
-
+#'
 smean <- function(x, ...){
   UseMethod('smean')
 }
 
 #' @rdname smean
 #' @export
-smean.default = function(x, na.rm = T, ids, var_type = 'se', ci = .95, ci_method = 'mean' ){
-  var_type = match.arg(var_type, c(NULL, 'se', 'ci'))
+#'
+smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean',level = .95, df = Inf){
 
-  if(missing(ids)) stop('needs an id column to help why by type operations. The default column should be `_id`')
-  stop_assignment()
+  var_type = match.arg(var_type, c('none', 'se', 'ci'), TRUE)
+  ci_method = match.arg(ci_method, c('mean', 'beta', 'xlogit'))
+
+  if(missing(ids)) stop('Please explicitly pass an id vector')
+  #stop_assignment() -- I can't remember why this shouldn't work with `:=`
 
   sv = get_survey_vars()
+  st = get_survey_type()
+
+  #get the df for later
+  #taken from survey:::degf.survey.design2
+  if(st %in% 'svydt'){
+    lids = length(ids)
+    df = length(unique(sv[`_id` %in% ids, psu])) -length(unique(sv[`_id` %in% ids, strata]))
+  }
 
   if(na.rm){
     ids <- ids[!is.na(x)]
@@ -44,7 +57,7 @@ smean.default = function(x, na.rm = T, ids, var_type = 'se', ci = .95, ci_method
 
   ret = list(mean = average)
 
-  if(!all(is.null(var_type))){
+  if(!all(var_type %in% 'none')){
     v<-survey::svyrecvar(x *sv$weight[ids]/psum,
                          data.frame(psu = sv$psu[ids]),
                          data.frame(strata = sv$strata[ids]),
@@ -61,16 +74,48 @@ smean.default = function(x, na.rm = T, ids, var_type = 'se', ci = .95, ci_method
       ret$se = se
     }
 
+
+    if(any('ci' %in% var_type)){
+      #nicked from survey:::tconfint
+      if(ci_method == 'mean') ci = average + se %o% qt(c((1-level)/2, 1-(1-level)/2), df = df)
+      #nicked from survey::svyciprop
+      if(ci_method %in% c('beta', 'xlogit')){
+        m <- average
+        attr(m, 'var') <- v
+        names(m) = 1
+        class(m) <- 'svystat'
+
+
+        if(ci_method %in% 'xlogit'){
+          xform <- survey::svycontrast(m, quote(log(`1`/(1 - `1`))))
+          ci <- expit(as.vector(confint(xform, 1, level = level,
+                                        df = df)))
+        }
+
+        if(ci_method %in% 'beta'){
+          n.eff <- coef(m) * (1 - coef(m))/vcov(m)
+          rval <- coef(m)[1]
+          attr(rval, "var") <- vcov(m)
+          alpha <- 1 - level
+          # n.eff <- n.eff * (qt(alpha/2, nrow(design) - 1)/qt(alpha/2,
+          #                                                    degf(design)))^2
+          n.eff <- n.eff * (qt(alpha/2, lids - 1)/qt(alpha/2,
+                                                             df))^2
+          ci <- c(qbeta(alpha/2, n.eff * rval, n.eff * (1 - rval) +
+                          1), qbeta(1 - alpha/2, n.eff * rval + 1, n.eff *
+                                      (1 - rval)))
+        }
+
+
+      }
+      ret$lower = ci[1]
+      ret$upper = ci[2]
+    }
+
   }
 
   return(t(ret))
 }
-
-#' smean.default <- function(x, na.rm = T, ids){
-#'   stop_assignment()
-#'   xcl = class(x)
-#'   stop(paste("Don't know how to deal with objects of class(es):", paste0(xcl, collapse = ', ')))
-#' }
 
 #' @rdname smean
 #' @export

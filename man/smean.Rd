@@ -8,30 +8,34 @@
 \usage{
 smean(x, ...)
 
-\method{smean}{default}(x, na.rm = T, ids, var_type = "se", ci = 0.95, ci_method = "mean")
+\method{smean}{default}(
+  x,
+  ids,
+  na.rm = T,
+  var_type = "none",
+  ci_method = "mean",
+  level = 0.95,
+  df = Inf
+)
 
 \method{smean}{character}(x, ...)
 }
 \arguments{
 \item{x}{vector. Vector of values to compute a weighted mean over}
 
-\item{na.rm}{logical. Passed to `weighted.mean`}
-
 \item{ids}{numeric. list of indices which are being computed}
+
+\item{na.rm}{logical. Passed to `weighted.mean`}
 
 \item{var_type}{character. Report variability as one or more of: standard error ("se", default) and confidence interval ("ci")}
 
-\item{ci}{numeric. A value in the range of (0, 1) denoting what level of confidence the CI should be}
-
 \item{ci_method}{character. Determines how the ci (if requested via \code{var_type}) should be calculated
 Options beside "mean" are only relevant for proportion (e.g. logical or values )}
+
+\item{level}{numeric. A value in the range of (0, 1) denoting what level of confidence the CI should be}
+
+\item{df}{numeric. Degrees of freedom}
 }
 \description{
 Calculate the survey mean
-
-smean.default <- function(x, na.rm = T, ids){
-  stop_assignment()
-  xcl = class(x)
-  stop(paste("Don't know how to deal with objects of class(es):", paste0(xcl, collapse = ', ')))
-}
 }

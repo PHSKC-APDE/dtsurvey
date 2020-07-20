@@ -57,6 +57,9 @@ dtsurvey = function(DT, psu = NULL, strata = NULL, weight = NULL, nest = TRUE){
   sdes[, sampsize := length(unique(psu)), strata]
 
   data.table::setattr(DT, 'sdes', sdes)
+  data.table::setattr(DT, 'stype', 'svydt')
+
+  #class(DT) <- c('svydt', class(DT))
 
   return(DT)
 
