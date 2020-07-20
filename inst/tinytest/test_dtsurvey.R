@@ -11,7 +11,8 @@ fake = data.table(num = runif(size),
                   logi = sample(c(TRUE, FALSE), size, TRUE),
                   weight = 1,
                   strata = sample(1:10, size, TRUE),
-                  byvar = sample(1:2, size, TRUE))
+                  byvar = sample(1:2, size, TRUE),
+                  byna = sample(c(NA, 1, 2), size , TRUE))
 fake[, psu := as.numeric(paste0(strata, sample(1:5, size, TRUE)))]
 fake[, num_na := num]
 fake[sample(seq_len(size), 20), num_na := NA]
@@ -104,3 +105,8 @@ r17.1[, fact := rep(levels(fake_sur[, fact]),2)]
 setorder(r17.1, fact, byvar)
 expect_equal(unique(r17.1[,V3]), unname(r17.3[,1]))
 expect_equal(unique(r17.1[,V4]), unname(r17.3[,2]))
+
+#byna
+r18.1 = fake_sur[, smean(num_na, ids = `_id`, var_type = 'se', use_df = FALSE), as.factor(byna)]
+r18.2 = svyby(~num_na, ~as.factor(byna), og, svymean, na.rm = T)
+expect_false(length(r18.1[,V1]) ==  length(r18.2[,2]), )
