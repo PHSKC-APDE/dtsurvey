@@ -8,7 +8,13 @@
 #' @param ci_method character. Determines how the ci (if requested via \code{var_type}) should be calculated
 #'                  Options beside "mean" are only relevant for proportion (e.g. logical or values).
 #'                  When the method is 'mean', the results should match \code{survey::svymean} while other options match \code{survey::svyciprop}
-#' @param df numeric. Degrees of freedom
+#' @param use_df logical. Should the estimated degrees of freedom by used to calculate CIs? Default is TRUE. FALSE implies df = Inf.
+#'               \code{confint(survey::svymean())} uses Inf as a default while \code{confint(survey::svyciprop)} uses \code{degf(design)}
+#'
+#' @return a list. Entry 1 is the result of the calculation (e.g. the mean value). Other item entries are (optionally) the se, lower, and upper.
+#' @details When x is a factor, results are returned in order of \code{levels(x)}.
+#'          When \code{smean} is called without assignment (e.g. \code{:=}), the result value will translate from a list to a data.table, even if only the mean is returned.
+#'
 #' @export
 #'
 smean <- function(x, ...){
@@ -18,13 +24,12 @@ smean <- function(x, ...){
 #' @rdname smean
 #' @export
 #'
-smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean',level = .95, df = Inf){
+smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean',level = .95, use_df = T){
 
   var_type = match.arg(var_type, c('none', 'se', 'ci'), TRUE)
   ci_method = match.arg(ci_method, c('mean', 'beta', 'xlogit'))
 
   if(missing(ids)) stop('Please explicitly pass an id vector')
-  #stop_assignment() -- I can't remember why this shouldn't work with `:=`
 
   sv = get_survey_vars()
   st = get_survey_type()
@@ -35,6 +40,8 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
     lids = length(ids)
     df = length(unique(sv[`_id` %in% ids, psu])) -length(unique(sv[`_id` %in% ids, strata]))
   }
+
+  if(!use_df) df = Inf
 
   if(na.rm){
     ids <- ids[!is.na(x)]
@@ -55,7 +62,7 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
   #              postStrata=design$postStrata)
 
 
-  ret = list(mean = average)
+  ret = list(result = average)
 
   if(!all(var_type %in% 'none')){
     v<-survey::svyrecvar(x *sv$weight[ids]/psum,
@@ -108,13 +115,22 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
 
 
       }
-      ret$lower = ci[1]
-      ret$upper = ci[2]
+
+      if(is.matrix(ci)){
+        ret$lower = ci[,1]
+        ret$upper = ci[,2]
+      }else{
+        ret$lower = ci[1]
+        ret$upper = ci[2]
+      }
     }
 
   }
 
-  return(t(ret))
+  names(ret) = NULL
+  #r = t(ret)
+  #if(is.factor(x))
+  return(ret)
 }
 
 #' @rdname smean
