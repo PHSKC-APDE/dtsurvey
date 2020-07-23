@@ -45,7 +45,7 @@ dtsurvey = function(DT, psu = NULL, strata = NULL, weight = NULL, nest = TRUE){
   }
 
   if(nest){
-    sdes[, psu := .GRP, by = c(strata, psu)]
+    sdes[, psu := .GRP, by = .(strata, psu)]
   }
 
   #confirm PSUs are nested within strata
@@ -59,7 +59,7 @@ dtsurvey = function(DT, psu = NULL, strata = NULL, weight = NULL, nest = TRUE){
   data.table::setattr(DT, 'sdes', sdes)
   data.table::setattr(DT, 'stype', 'svydt')
 
-  #class(DT) <- c('svydt', class(DT))
+  setattr(DT, 'class', c('dtsurvey', class(DT)))
 
   return(DT)
 

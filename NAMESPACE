@@ -2,9 +2,11 @@
 
 S3method(smean,character)
 S3method(smean,default)
+export(dtrepsurvey)
 export(dtsurvey)
 export(get_survey_type)
 export(get_survey_vars)
+export(get_svyrep_attributes)
 export(smean)
 export(stop_assignment)
 importFrom(data.table,".GRP")

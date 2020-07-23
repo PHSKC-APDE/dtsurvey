@@ -34,11 +34,14 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
   sv = get_survey_vars()
   st = get_survey_type()
 
+
+  ids = which(sv[,`_id` %in% ids])
+
   #get the df for later
   #taken from survey:::degf.survey.design2
   if(st %in% 'svydt'){
     lids = length(ids)
-    df = length(unique(sv[`_id` %in% ids, psu])) -length(unique(sv[`_id` %in% ids, strata]))
+    df = length(unique(sv[ids, psu])) -length(unique(sv[ids, strata]))
   }
 
   if(!use_df) df = Inf
@@ -55,21 +58,20 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
     x = matrix(x, ncol = 1)
   }
 
-  psum<-sum(sv$weight[ids])
-  average<-colSums(x*sv$weight[ids]/psum)
-  x<-sweep(x,2,average)
-  # v<-svyrecvar(x*pweights/psum,design$cluster,design$strata, design$fpc,
-  #              postStrata=design$postStrata)
-
-
-  ret = list(result = average)
+  if(st %in% 'svydt') ret = calc_mean_dtsurvey(x = x, ids = ids, sv = sv, var = var_type != 'none')
+  if(st %in% 'svyrepdt'){
+    repdat = get_svyrep_attributes()
+    ret = calc_mean_dtrepsurvey(x = x, sv = sv, ids = ids,
+                                scaledata = repdat$scaledata,
+                                cw = repdat$combined.weights,
+                                mse = repdat$mse,
+                                var = var_type != 'none')
+  }
+  if(!exists('ret')) stop('No results generated-- check that attribute `type` is available in the parent data.frame')
 
   if(!all(var_type %in% 'none')){
-    v<-survey::svyrecvar(x *sv$weight[ids]/psum,
-                         data.frame(psu = sv$psu[ids]),
-                         data.frame(strata = sv$strata[ids]),
-                         list(popsize = NULL, sampsize = as.matrix(sv$sampsize[ids], ncol = 1)),
-                         postStrata=NULL)
+    v = ret$v
+    ret$v = NULL
 
     if (is.matrix(v)){
       se <- sqrt(diag(v))
@@ -78,19 +80,19 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
     }
 
     if(any('se' %in% var_type)){
+      attributes(se) <- NULL
       ret$se = se
     }
 
-
     if(any('ci' %in% var_type)){
       #nicked from survey:::tconfint
-      if(ci_method == 'mean') ci = average + se %o% qt(c((1-level)/2, 1-(1-level)/2), df = df)
+      if(ci_method == 'mean') ci = ret$result + se %o% qt(c((1-level)/2, 1-(1-level)/2), df = df)
       #nicked from survey::svyciprop
       if(ci_method %in% c('beta', 'xlogit')){
-        m <- average
+        m <- ret$result
         attr(m, 'var') <- v
         names(m) = 1
-        class(m) <- 'svystat'
+        class(m) <- 'svystat' #TODO: This might need to be changed based on svrep
 
 
         if(ci_method %in% 'xlogit'){
@@ -107,13 +109,11 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
           # n.eff <- n.eff * (qt(alpha/2, nrow(design) - 1)/qt(alpha/2,
           #                                                    degf(design)))^2
           n.eff <- n.eff * (qt(alpha/2, lids - 1)/qt(alpha/2,
-                                                             df))^2
+                                                     df))^2
           ci <- c(qbeta(alpha/2, n.eff * rval, n.eff * (1 - rval) +
                           1), qbeta(1 - alpha/2, n.eff * rval + 1, n.eff *
                                       (1 - rval)))
         }
-
-
       }
 
       if(is.matrix(ci)){
@@ -126,7 +126,6 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
     }
 
   }
-
   names(ret) = NULL
   #r = t(ret)
   #if(is.factor(x))
@@ -136,10 +135,59 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
 #' @rdname smean
 #' @export
 smean.character <- function(x, ...){
-  #similar to smean.numeric, but to use a routine that mimics svyciprop for better confidence intervals
   stop(paste("Don't know how to deal with objects of class: 'character'. Consider converting into a factor before running smean"))
 
 }
-#' #' And internal routine to calculate
-#' smean_num
 
+
+#' An internal function to calculate the mean (and optionally, SE and CI) from a dtrepsurvey object
+#' https://github.com/cran/survey/blob/a0f53f8931f4e304af3c758b2ff9a56b0a2a49bd/R/surveyrep.R
+calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, var = T){
+
+  #Not really sure if this will ever actually be useful, but carry over from survey
+  if(!cw)
+    pw<-sv[ids ,pweights]
+  else
+    pw<-1
+  ret = list()
+  ret$result <- colSums(sv[ids, pweights] * x)/sum(sv[ids, pweights])
+
+
+  if(var){
+    repmeans = sv[, lapply(.SD, function(y) colSums(x * pw * y)/sum(pw *y)), .SDcols = grep('rep', names(sv))]
+    repmeans = drop(as.matrix(repmeans))
+    #calculate the variance
+    v <- svrVar(repmeans, scaledata$scale, scaledata$rscales,mse=mse, coef=ret$result)
+    ret$v = v
+  }
+
+  return(ret)
+
+}
+
+#' An internal function to calculate the mean (and optionally, SE and CI) from a normal dtsurvey object
+#' @param x matrix. For calculating column means
+#' @param sv data.table. DT of the survey variables
+#' @param var logical. Should the variance be calculated?
+calc_mean_dtsurvey <- function(x, ids, sv,var = T){
+
+  psum<-sum(sv$weight[ids])
+  average<-colSums(x*sv$weight[ids]/psum)
+  x<-sweep(x,2,average)
+  # v<-svyrecvar(x*pweights/psum,design$cluster,design$strata, design$fpc,
+  #              postStrata=design$postStrata)
+
+  ret = list(result = average)
+ if(var){
+   v<-survey::svyrecvar(x *sv$weight[ids]/psum,
+     data.frame(psu = sv$psu[ids]),
+     data.frame(strata = sv$strata[ids]),
+     list(popsize = NULL, sampsize = as.matrix(sv$sampsize[ids], ncol = 1)),
+     postStrata=NULL)
+
+   ret$v = v
+ }
+
+
+  return(ret)
+}
