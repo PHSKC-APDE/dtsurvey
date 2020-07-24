@@ -4,7 +4,7 @@
 \alias{stop_assignment}
 \title{Stop a call in a dtsurvey if its part of an assignment}
 \usage{
-stop_assignment(x)
+stop_assignment()
 }
 \description{
 Stop a call in a dtsurvey if its part of an assignment

@@ -2,16 +2,16 @@ Package: dtsurvey
 Title: Survey Analysis Using data.table For SPEEEEEED
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Daniel",
+           family = "Casey",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+           email = "dcasey@kingcounty.gov")
+Description: Implements simple survey calculations like means and totals within a loosely decorated data.table structure so that data.table syntax can be utilized.
 License: What license it uses
 Encoding: UTF-8
 LazyData: true
 Suggests: tinytest
 RoxygenNote: 7.1.0
 Imports: 
-    data.table (>= 1.12.8)
+    data.table (>= 1.12.8),
+    survey(>= 4.0)

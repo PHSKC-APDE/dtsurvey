@@ -23,6 +23,8 @@ smean(x, ...)
 \arguments{
 \item{x}{vector. Vector of values to compute a weighted mean over}
 
+\item{...}{other arguments. Currently unused.}
+
 \item{ids}{numeric. list of indices which are being computed}
 
 \item{na.rm}{logical. Passed to `weighted.mean`}

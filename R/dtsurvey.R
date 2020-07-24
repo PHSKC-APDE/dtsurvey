@@ -7,7 +7,8 @@
 #' @param nest logical. If true, will renest PSUs within strata.
 #'             If false, PSUs will be accepted as is and will throw an error when PSUs belong to multiple strata
 #'
-#' @importFrom data.table data.table ":=" ".SD" ".GRP" ".I" copy
+#' @importFrom data.table 'data.table' ":=" ".SD" ".GRP" ".I" "copy" ".N"
+#'
 #' @export
 #'
 dtsurvey = function(DT, psu = NULL, strata = NULL, weight = NULL, nest = TRUE){

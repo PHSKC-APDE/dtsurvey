@@ -9,9 +9,11 @@ calc_mean_dtsurvey(x, ids, sv, var = T)
 \arguments{
 \item{x}{matrix. For calculating column means}
 
+\item{ids}{logical. vector determining which rows are being calculated on.}
+
 \item{sv}{data.table. DT of the survey variables}
 
-\item{var}{logical. Should the variance be calculated?}
+\item{var}{logical. Should the variance be calculated and returned?}
 }
 \description{
 An internal function to calculate the mean (and optionally, SE and CI) from a normal dtsurvey object

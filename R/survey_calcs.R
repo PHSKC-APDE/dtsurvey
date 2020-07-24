@@ -10,20 +10,19 @@
 #'                  When the method is 'mean', the results should match \code{survey::svymean} while other options match \code{survey::svyciprop}
 #' @param use_df logical. Should the estimated degrees of freedom by used to calculate CIs? Default is TRUE. FALSE implies df = Inf.
 #'               \code{confint(survey::svymean())} uses Inf as a default while \code{confint(survey::svyciprop)} uses \code{degf(design)}
-#'
+#' @param ... other arguments. Currently unused.
 #' @return a list. Entry 1 is the result of the calculation (e.g. the mean value). Other item entries are (optionally) the se, lower, and upper.
 #' @details When x is a factor, results are returned in order of \code{levels(x)}.
 #'          When \code{smean} is called without assignment (e.g. \code{:=}), the result value will translate from a list to a data.table, even if only the mean is returned.
 #'
 #' @export
-#'
+#' @importFrom stats model.matrix qt confint coef vcov qbeta
 smean <- function(x, ...){
   UseMethod('smean')
 }
 
 #' @rdname smean
-#' @export
-#'
+#' @importFrom survey svycontrast
 smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean',level = .95, use_df = T){
 
   var_type = match.arg(var_type, c('none', 'se', 'ci'), TRUE)
@@ -142,25 +141,30 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
 }
 
 #' @rdname smean
-#' @export
 smean.character <- function(x, ...){
   stop(paste("Don't know how to deal with objects of class: 'character'. Consider converting into a factor before running smean"))
 
 }
 
-
 #' An internal function to calculate the mean (and optionally, SE and CI) from a dtrepsurvey object
-#' https://github.com/cran/survey/blob/a0f53f8931f4e304af3c758b2ff9a56b0a2a49bd/R/surveyrep.R
+#' @param x matrix. Results from the mean call
+#' @param ids logical. vector determining which rows are being calculated on.
+#' @param sv data.table survey variables data.table
+#' @param scaledata list the different scale bits from svrepdesigns
+#' @param cw logical. denotes combined weights
+#' @param mse logical. passed to survey::svrVar
+#' @param selfrep logical. Used for some logic taken from survey:::svymean.svrepdesign
+#' @param var logical. Should the vcov matrix be returned?
+#' @importFrom survey svrVar
+#'
 calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, selfrep= NULL, var = T){
-
+  # ttps://github.com/cran/survey/blob/a0f53f8931f4e304af3c758b2ff9a56b0a2a49bd/R/surveyrep.R
   #Not really sure if this will ever actually be useful, but carry over from survey
   if(!cw)
     pw<-sv[ids ,pweights]
   else
     pw<-1
   ret = list()
-
-
 
 
   ret$result <- colSums(sv[ids, pweights] * x)/sum(sv[ids, pweights])
@@ -175,7 +179,7 @@ calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, selfrep= NULL,
       repmeans = drop(as.matrix(repmeans))
       if(NCOL(repmeans)>1) repmeans <- t(repmeans)
       #calculate the variance
-      ret$v <- svrVar(repmeans, scaledata$scale, scaledata$rscales,mse=mse, coef=ret$result)
+      ret$v <- survey::svrVar(repmeans, scaledata$scale, scaledata$rscales,mse=mse, coef=ret$result)
 
     }
   }
@@ -186,8 +190,10 @@ calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, selfrep= NULL,
 
 #' An internal function to calculate the mean (and optionally, SE and CI) from a normal dtsurvey object
 #' @param x matrix. For calculating column means
+#' @param ids logical. vector determining which rows are being calculated on.
 #' @param sv data.table. DT of the survey variables
-#' @param var logical. Should the variance be calculated?
+#' @param var logical. Should the variance be calculated and returned?
+#' @importFrom survey svyrecvar
 calc_mean_dtsurvey <- function(x, ids, sv, var = T){
 
   psum<-sum(sv$weight[ids])
