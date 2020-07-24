@@ -43,7 +43,7 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
   if(st %in% 'svydt'){
     df = length(unique(sv[ids, psu])) -length(unique(sv[ids, strata]))
   }else if(st %in% 'svyrepdt') {
-    df = qr(as.matrix(sv[, .SD, .SDcols=  grep('rep', names(sv))]), tol = 1e-05)$rank - 1
+    df = qr(as.matrix(sv[ids, .SD, .SDcols=  grep('rep', names(sv))]), tol = 1e-05)$rank - 1
   }
 
   if(!use_df) df = Inf
@@ -94,8 +94,14 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
       if(ci_method %in% c('beta', 'xlogit')){
         m <- ret$result
         attr(m, 'var') <- v
+
+        if(st %in% 'svyrepdt'){
+          class(m) <- "svrepstat"
+        } else{
+          class(m) <- 'svystat'
+        }
         names(m) = 1
-        class(m) <- 'svystat' #TODO: This might need to be changed based on svrep
+
 
 
         if(ci_method %in% 'xlogit'){
@@ -167,6 +173,7 @@ calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, selfrep= NULL,
     }else{
       repmeans = sv[ids, lapply(.SD, function(y) colSums(x * pw * y)/sum(pw *y)), .SDcols = grep('rep', names(sv))]
       repmeans = drop(as.matrix(repmeans))
+      if(NROW(repmeans)>1) repmeans <- t(repmeans)
       #calculate the variance
       ret$v <- svrVar(repmeans, scaledata$scale, scaledata$rscales,mse=mse, coef=ret$result)
 

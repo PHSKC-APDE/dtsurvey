@@ -13,15 +13,22 @@ dtrepsurvey <- function(svyrep){
   sdes[, `_id`:= .I]
 
   if(inherits(svyrep$repweights, 'repweights_compressed')){
-    idx = svy$repweights$index$weights
-    wts = svyrep$repweights
-  }else{
-    idx = sdes[, `_id`]
-    wts = svyrep$repweights
-  }
+    #this will decompress the weights but whatever
+    idx = svyrep$repweights$index
+    wts = data.table(svyrep$repweights$weights)[, `_id` := .I]
+    sdes = data.table(`_id` = idx)
+    sdes = merge(sdes, wts, by = '_id', all.x = T)
+    rm(idx); rm(wts);
+    data.table::setorder(sdes, `_id`)
+    sdes[, `_id` := .I]
 
-  #this will uncompress the weights but whatever
-  sdes[idx, paste0('rep', seq_len(ncol(wts))) := lapply(seq_len(ncol(wts)), function(x) wts[,x])]
+  }else{
+    sdes = data.table(svyrep$repweights)
+    sdes[, `_id` := .I]
+  }
+  setnames(sdes, paste0('V', seq_len(ncol(sdes)-1)), paste0('rep', seq_len(ncol(sdes)-1)))
+
+  sdes[, pweights := og$pweights]
 
   data.table::setattr(DT, 'sdes', sdes)
   data.table::setattr(DT, 'stype', 'svyrepdt')
