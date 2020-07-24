@@ -61,25 +61,25 @@ r7.2 <- svymean(~num, og)
 expect_equal(unname(unlist(r7.1)), unname(c(coef(r7.2), SE(r7.2), confint(r7.2))))
 
 #Test alternative ways of calculating cis, first without by vars
-r13.1 <- fake_sur[, smean(num_na, ids = `_id`, var_type = 'ci', ci_method = 'xlogit')]
-r13.2 <- fake_sur[, smean(num_na, ids = `_id`, var_type = 'ci', ci_method = 'beta')]
-r13.3 <- confint(svyciprop(~num_na, og, method = 'xlogit', na.rm = T))
-r13.4 <- confint(svyciprop(~num_na, og, method = 'beta', na.rm = T))
+r13.1 <- fake_sur[, smean(logi, ids = `_id`, var_type = 'ci', ci_method = 'xlogit')]
+r13.2 <- fake_sur[, smean(logi, ids = `_id`, var_type = 'ci', ci_method = 'beta')]
+r13.3 <- confint(svyciprop(~logi, og, method = 'xlogit', na.rm = T))
+r13.4 <- confint(svyciprop(~logi, og, method = 'beta', na.rm = T))
 expect_equal(unname(unlist(r13.1)[2:3]), as.vector(unname(r13.3)))
 
 #alternative ci methods, with bys
-r14.1 <- fake_sur[, smean(num_na, ids = `_id`, var_type = 'ci', ci_method = 'xlogit'), byvar]
-r14.2 <- fake_sur[, smean(num_na, ids = `_id`, var_type = 'ci', ci_method = 'beta'), byvar]
-r14.3 <- svyby(~num_na, ~byvar, og, svyciprop, vartype = 'ci', method = 'xlogit', na.rm = T)
-r14.4 <- svyby(~num_na, ~byvar, og, svyciprop, vartype = 'ci', method = 'beta', na.rm = T)
+r14.1 <- fake_sur[, smean(logi, ids = `_id`, var_type = 'ci', ci_method = 'xlogit'), byvar]
+r14.2 <- fake_sur[, smean(logi, ids = `_id`, var_type = 'ci', ci_method = 'beta'), byvar]
+r14.3 <- svyby(~logi, ~byvar, og, svyciprop, vartype = 'ci', method = 'xlogit', na.rm = T)
+r14.4 <- svyby(~logi, ~byvar, og, svyciprop, vartype = 'ci', method = 'beta', na.rm = T)
 expect_equal(unname(as.matrix(r14.1)), unname(as.matrix(r14.3)))
 expect_equal(unname(as.matrix(r14.2)), unname(as.matrix(r14.4)))
 
 #alternative ci methods, with filtering
-r15.1 <- fake_sur[fact != 'a', smean(num_na, ids = `_id`, var_type = 'ci', ci_method = 'xlogit'), byvar]
-r15.2 <- fake_sur[fact != 'a', smean(num_na, ids = `_id`, var_type = 'ci', ci_method = 'beta'), byvar]
-r15.3 <- svyby(~num_na, ~byvar, subset(og, fact != 'a'), svyciprop, vartype = 'ci', method = 'xlogit', na.rm = T)
-r15.4 <- svyby(~num_na, ~byvar, subset(og,fact != 'a'), svyciprop, vartype = 'ci', method = 'beta', na.rm = T)
+r15.1 <- fake_sur[fact != 'a', smean(logi, ids = `_id`, var_type = 'ci', ci_method = 'xlogit'), byvar]
+r15.2 <- fake_sur[fact != 'a', smean(logi, ids = `_id`, var_type = 'ci', ci_method = 'beta'), byvar]
+r15.3 <- svyby(~logi, ~byvar, subset(og, fact != 'a'), svyciprop, vartype = 'ci', method = 'xlogit', na.rm = T)
+r15.4 <- svyby(~logi, ~byvar, subset(og,fact != 'a'), svyciprop, vartype = 'ci', method = 'beta', na.rm = T)
 expect_equal(unname(as.matrix(r15.1)), unname(as.matrix(r15.3)))
 expect_equal(unname(as.matrix(r15.2)), unname(as.matrix(r15.4)))
 

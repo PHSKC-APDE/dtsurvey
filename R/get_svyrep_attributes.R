@@ -21,7 +21,8 @@ get_svyrep_attributes <- function(){
 
   ret <- list(scaledata = attr(framing[[lastcall]]$x, 'scaledata'),
               combined.weights = attr(framing[[lastcall]]$x, 'combined.weights'),
-              mse = attr(framing[[lastcall]]$x, 'mse'))
+              mse = attr(framing[[lastcall]]$x, 'mse'),
+              selfrep = attr(framing[[lastcall]]$x, 'mse'))
 
   if(is.null(ret)) stop('No svyrep details found')
 

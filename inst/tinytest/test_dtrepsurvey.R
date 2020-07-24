@@ -6,6 +6,10 @@ library('dtsurvey')
 #dumb survey
 set.seed(98112)
 data(scd)
+scd$alive_na = c(NA, scd$alive[2:6])
+scd$ambulance_na = c(scd$ambulance[1:5], NA)
+scd$bin = sample(0:1, size = 6, replace = T)
+
 # use BRR replicate weights from Levy and Lemeshow
 repweights<-2*cbind(c(1,0,1,0,1,0), c(1,0,0,1,0,1), c(0,1,1,0,0,1),
                     c(0,1,0,1,1,0))
@@ -15,52 +19,52 @@ dt = dtrepsurvey(og)
 #confirm that a mean, no bys or NAs are equal
 r1.1 = svymean(~arrests, og)
 r1.2 = dt[, smean(arrests, var_type = 'se', ids = `_id`)]
-expect_equal(as.numeric(r1.1), r1.2$V1, info = 'Simple survey means are equal')
-expect_equal(as.numeric(SE(r1.1)), r1.2$V2, info = 'Simple survey ses are equal')
+expect_equal(as.numeric(r1.1), r1.2$V1, info = 'Simple rep survey means are equal')
+expect_equal(as.numeric(SE(r1.1)), r1.2$V2, info = 'Simple rep survey ses are equal')
 
 #this time with bys
 r2.1 = svyby(~alive, ~ambulance, og, svymean)
 r2.2 = dt[, smean(alive, var_type = 'se', ids = `_id`), by = ambulance]
-setorder(r2.2, byvar)
-expect_equal(r2.1$num, r2.2$V1, info = 'Simple survey means are equal, with one byvar')
-expect_equal(as.numeric(SE(r2.1)), r2.2$V2, info = 'Simple survey ses are equal, with one byvar')
+setorder(r2.2, ambulance)
+expect_equal(r2.1$alive, r2.2$V1, info = 'Simple rep survey means are equal, with one byvar')
+expect_equal(as.numeric(SE(r2.1)), r2.2$V2, info = 'Simple rep survey ses are equal, with one byvar')
 
 #simple, with NA
-r3.1 = svymean(~num_na, og, na.rm = T)
-r3.2 = dt[, smean(num_na, var_type = 'se', na.rm = TRUE, ids = `_id`)]
-expect_equal(as.numeric(r3.1), r3.2$V1, info = 'Simple survey means are equal, with some NAs')
-expect_equal(as.numeric(SE(r3.1)), r3.2$V2, info = 'Simple survey ses are equal, with some NAs')
+r3.1 = svymean(~alive_na, og, na.rm = T)
+r3.2 = dt[, smean(alive_na, var_type = 'se', na.rm = TRUE, ids = `_id`)]
+expect_equal(as.numeric(r3.1), r3.2$V1, info = 'Simple rep survey means are equal, with some NAs')
+expect_equal(as.numeric(SE(r3.1)), r3.2$V2, info = 'Simple rep survey ses are equal, with some NAs')
 
 #simple, with NA and by
-r4.1 = svyby(~num_na, ~byvar, og, svymean, na.rm = TRUE)
-r4.2 = dt[, smean(num_na, var_type = 'se', ids = `_id`), by = byvar]
-setorder(r4.2, byvar)
-expect_equal(r4.1$num_na, r4.2$V1, info = 'Simple survey means are equal, with one byvar and some NAs')
-expect_equal(as.numeric(SE(r4.1)), r4.2$V2, info = 'Simple survey ses are equal, with one byvar and some NAs')
+r4.1 = svyby(~alive_na, ~ambulance, og, svymean, na.rm = TRUE)
+r4.2 = dt[, smean(alive_na, var_type = 'se', ids = `_id`), by = ambulance]
+setorder(r4.2, ambulance)
+expect_equal(r4.1$alive_na, r4.2$V1, info = 'Simple rep survey means are equal, with one byvar and some NAs')
+expect_equal(as.numeric(SE(r4.1)), r4.2$V2, info = 'Simple rep survey ses are equal, with one byvar and some NAs')
 
 #try assignments
-expect_silent(r5 <- dt[, blah := smean(num, ids = `_id`, var_type = NULL)])
-expect_equal(r5[1, blah], as.numeric(svymean(~num, og, na.rm = T)))
-expect_silent(r6 <- dt[, blah := smean(num_na, ids = `_id`, na.rm = T, var_type = NULL), by = byvar])
-expect_equal(sort(unique(r6[, blah])), svyby(~num_na, ~byvar, og, svymean, na.rm = T)$num_na)
+expect_silent(r5 <- dt[, blah := smean(alive, ids = `_id`, var_type = NULL)])
+expect_equal(r5[1, blah], as.numeric(svymean(~alive, og, na.rm = T)))
+expect_silent(r6 <- dt[, blah := smean(alive_na, ids = `_id`, na.rm = T, var_type = NULL), by = ambulance])
+expect_equal(sort(unique(r6[, blah])), sort(svyby(~alive_na, ~ambulance, og, svymean, na.rm = T)$alive_na))
 
 #means, se, degrees of freedom
-expect_silent(r7.1 <- dt[, smean(num, ids = `_id`, var_type = c('se', 'ci'), use_df = FALSE)])
-r7.2 <- svymean(~num, og)
+expect_silent(r7.1 <- dt[, smean(alive, ids = `_id`, var_type = c('se', 'ci'), use_df = FALSE)])
+r7.2 <- svymean(~alive, og)
 expect_equal(unname(unlist(r7.1)), unname(c(coef(r7.2), SE(r7.2), confint(r7.2))))
 
 #Test alternative ways of calculating cis, first without by vars
-r13.1 <- dt[, smean(num_na, ids = `_id`, var_type = 'ci', ci_method = 'xlogit')]
-r13.2 <- dt[, smean(num_na, ids = `_id`, var_type = 'ci', ci_method = 'beta')]
-r13.3 <- confint(svyciprop(~num_na, og, method = 'xlogit', na.rm = T))
-r13.4 <- confint(svyciprop(~num_na, og, method = 'beta', na.rm = T))
+r13.1 <- dt[, smean(bin, ids = `_id`, var_type = 'ci', ci_method = 'xlogit')]
+r13.2 <- dt[, smean(bin, ids = `_id`, var_type = 'ci', ci_method = 'beta')]
+r13.3 <- confint(svyciprop(~bin, og, method = 'xlogit', na.rm = T))
+r13.4 <- confint(svyciprop(~bin, og, method = 'beta', na.rm = T))
 expect_equal(unname(unlist(r13.1)[2:3]), as.vector(unname(r13.3)))
 
 #alternative ci methods, with bys
-r14.1 <- dt[, smean(num_na, ids = `_id`, var_type = 'ci', ci_method = 'xlogit'), byvar]
-r14.2 <- dt[, smean(num_na, ids = `_id`, var_type = 'ci', ci_method = 'beta'), byvar]
-r14.3 <- svyby(~num_na, ~byvar, og, svyciprop, vartype = 'ci', method = 'xlogit', na.rm = T)
-r14.4 <- svyby(~num_na, ~byvar, og, svyciprop, vartype = 'ci', method = 'beta', na.rm = T)
+r14.1 <- dt[, smean(bin, ids = `_id`, var_type = 'ci', ci_method = 'xlogit'), ESA]
+r14.2 <- dt[, smean(bin, ids = `_id`, var_type = 'ci', ci_method = 'beta'), ESA]
+r14.3 <- svyby(~bin, ~ESA, og, svyciprop, vartype = 'ci', method = 'xlogit', na.rm = T)
+r14.4 <- svyby(~bin, ~ESA, og, svyciprop, vartype = 'ci', method = 'beta', na.rm = T)
 expect_equal(unname(as.matrix(r14.1)), unname(as.matrix(r14.3)))
 expect_equal(unname(as.matrix(r14.2)), unname(as.matrix(r14.4)))
 

@@ -39,9 +39,11 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
 
   #get the df for later
   #taken from survey:::degf.survey.design2
+  lids = length(ids)
   if(st %in% 'svydt'){
-    lids = length(ids)
     df = length(unique(sv[ids, psu])) -length(unique(sv[ids, strata]))
+  }else if(st %in% 'svyrepdt') {
+    df = qr(as.matrix(sv[, .SD, .SDcols=  grep('rep', names(sv))]), tol = 1e-05)$rank - 1
   }
 
   if(!use_df) df = Inf
@@ -58,14 +60,15 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
     x = matrix(x, ncol = 1)
   }
 
-  if(st %in% 'svydt') ret = calc_mean_dtsurvey(x = x, ids = ids, sv = sv, var = var_type != 'none')
+  if(st %in% 'svydt') ret = calc_mean_dtsurvey(x = x, ids = ids, sv = sv, var = !all(var_type %in% 'none'))
   if(st %in% 'svyrepdt'){
     repdat = get_svyrep_attributes()
     ret = calc_mean_dtrepsurvey(x = x, sv = sv, ids = ids,
                                 scaledata = repdat$scaledata,
                                 cw = repdat$combined.weights,
                                 mse = repdat$mse,
-                                var = var_type != 'none')
+                                selfrep = repdat$selfrep,
+                                var = !all(var_type %in% 'none'))
   }
   if(!exists('ret')) stop('No results generated-- check that attribute `type` is available in the parent data.frame')
 
@@ -142,7 +145,7 @@ smean.character <- function(x, ...){
 
 #' An internal function to calculate the mean (and optionally, SE and CI) from a dtrepsurvey object
 #' https://github.com/cran/survey/blob/a0f53f8931f4e304af3c758b2ff9a56b0a2a49bd/R/surveyrep.R
-calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, var = T){
+calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, selfrep= NULL, var = T){
 
   #Not really sure if this will ever actually be useful, but carry over from survey
   if(!cw)
@@ -150,15 +153,24 @@ calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, var = T){
   else
     pw<-1
   ret = list()
+
+
+
+
   ret$result <- colSums(sv[ids, pweights] * x)/sum(sv[ids, pweights])
 
-
+  #borrowed from https://github.com/cran/survey/blob/a0f53f8931f4e304af3c758b2ff9a56b0a2a49bd/R/surveyrep.R#L1079
   if(var){
-    repmeans = sv[, lapply(.SD, function(y) colSums(x * pw * y)/sum(pw *y)), .SDcols = grep('rep', names(sv))]
-    repmeans = drop(as.matrix(repmeans))
-    #calculate the variance
-    v <- svrVar(repmeans, scaledata$scale, scaledata$rscales,mse=mse, coef=ret$result)
-    ret$v = v
+
+    if (getOption("survey.drop.replicates") && !is.null(selfrep) && all(selfrep)){
+      ret$v<-matrix(0,length(ret$result),length(ret$result))
+    }else{
+      repmeans = sv[ids, lapply(.SD, function(y) colSums(x * pw * y)/sum(pw *y)), .SDcols = grep('rep', names(sv))]
+      repmeans = drop(as.matrix(repmeans))
+      #calculate the variance
+      ret$v <- svrVar(repmeans, scaledata$scale, scaledata$rscales,mse=mse, coef=ret$result)
+
+    }
   }
 
   return(ret)
@@ -169,7 +181,7 @@ calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, var = T){
 #' @param x matrix. For calculating column means
 #' @param sv data.table. DT of the survey variables
 #' @param var logical. Should the variance be calculated?
-calc_mean_dtsurvey <- function(x, ids, sv,var = T){
+calc_mean_dtsurvey <- function(x, ids, sv, var = T){
 
   psum<-sum(sv$weight[ids])
   average<-colSums(x*sv$weight[ids]/psum)
