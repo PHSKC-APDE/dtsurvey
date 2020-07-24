@@ -104,14 +104,14 @@ expect_equal(unique(r17.1[,V3]), unname(r17.3[,1]))
 expect_equal(unique(r17.1[,V4]), unname(r17.3[,2]))
 
 #byna
-r18.1 = dt[, smean(apina, ids = `_id`, var_type = 'se', use_df = FALSE), byna]
-r18.2 = svyby(~apina, ~byna, og, svymean, na.rm = T)
+r18.1 = dt[, smean(apina, ids = `_id`, var_type = 'se', use_df = FALSE), stypena]
+r18.2 = svyby(~apina, ~stypena, og, svymean, na.rm = T)
 expect_false(length(r18.1[,V1]) ==  length(r18.2[,2]), info = 'dtsurvey returns a row when a by var is NA, survey does not')
-expect_equal((r18.1[!is.na(byna),V1, keyby = byna][,V1]), r18.2[,2], info = 'dtsurvey returns a row when a by var is NA, survey does not')
+expect_equal((r18.1[!is.na(stypena),V1, keyby = stypena][,V1]), r18.2[,2], info = 'dtsurvey returns a row when a by var is NA, survey does not')
 
 #multiby
-r19.1 = dt[, smean(num, ids = `_id`), keyby = .(byvar, logi)]
-r19.2 = svyby(~num, ~byvar + logi, og, svymean, na.rm = T)
-setorder(r19.1, logi, byvar)
-expect_equal(r19.1[, V1], r19.2[, 'num'])
+r19.1 = dt[, smean(api00, ids = `_id`, var_type = 'se'), keyby = .(stype, awards)]
+r19.2 = svyby(~api00, ~stype + awards, og, svymean, na.rm = T)
+setorder(r19.1, awards, stype)
+expect_equal(r19.1[, V1], r19.2[, 'api00'])
 

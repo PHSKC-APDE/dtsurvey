@@ -173,7 +173,7 @@ calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, selfrep= NULL,
     }else{
       repmeans = sv[ids, lapply(.SD, function(y) colSums(x * pw * y)/sum(pw *y)), .SDcols = grep('rep', names(sv))]
       repmeans = drop(as.matrix(repmeans))
-      if(NROW(repmeans)>1) repmeans <- t(repmeans)
+      if(NCOL(repmeans)>1) repmeans <- t(repmeans)
       #calculate the variance
       ret$v <- svrVar(repmeans, scaledata$scale, scaledata$rscales,mse=mse, coef=ret$result)
 
