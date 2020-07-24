@@ -1,12 +1,12 @@
 #' A function to convert a `svyrep.design` into a dtsvyrep
 #' @param svyrep svyrep.design
 #' @export
-#' @importFrom data.table data.table as.data.table setattr ".I"
+#' @importFrom data.table data.table as.data.table setattr ".I" setnames
 #'
 dtrepsurvey <- function(svyrep){
 
   #bindings to get past rcheck
-  x <- sv <- ids <- scaledata <- cw <- mse <- selfrep <- var = NULL
+  sv <- ids <- scaledata <- cw <- mse <- selfrep <- NULL
 
 
   stopifnot(inherits(svyrep, 'svyrep.design'))
@@ -29,10 +29,10 @@ dtrepsurvey <- function(svyrep){
     sdes[, `_id` := .I]
 
   }else{
-    sdes = data.table(svyrep$repweights)
+    sdes = data.table::data.table(svyrep$repweights)
     sdes[, `_id` := .I]
   }
-  setnames(sdes, paste0('V', seq_len(ncol(sdes)-1)), paste0('rep', seq_len(ncol(sdes)-1)))
+  data.table::setnames(sdes, paste0('V', seq_len(ncol(sdes)-1)), paste0('rep', seq_len(ncol(sdes)-1)))
 
   sdes[, pweights := svyrep$pweights]
 

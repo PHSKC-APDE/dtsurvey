@@ -16,14 +16,22 @@
 #'          When \code{smean} is called without assignment (e.g. \code{:=}), the result value will translate from a list to a data.table, even if only the mean is returned.
 #'
 #' @export
+#'
 #' @importFrom stats model.matrix qt confint coef vcov qbeta
+#'
+#' @importFrom survey svycontrast
+#'
+#'
 smean <- function(x, ...){
   UseMethod('smean')
 }
 
 #' @rdname smean
-#' @importFrom survey svycontrast
+#' @export
 smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean',level = .95, use_df = T){
+
+  #global bindings
+  psu <- strata <- NULL
 
   var_type = match.arg(var_type, c('none', 'se', 'ci'), TRUE)
   ci_method = match.arg(ci_method, c('mean', 'beta', 'xlogit'))
@@ -141,6 +149,7 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
 }
 
 #' @rdname smean
+#' @export
 smean.character <- function(x, ...){
   stop(paste("Don't know how to deal with objects of class: 'character'. Consider converting into a factor before running smean"))
 
@@ -156,7 +165,6 @@ smean.character <- function(x, ...){
 #' @param selfrep logical. Used for some logic taken from survey:::svymean.svrepdesign
 #' @param var logical. Should the vcov matrix be returned?
 #' @importFrom survey svrVar
-#'
 calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, selfrep= NULL, var = T){
   # ttps://github.com/cran/survey/blob/a0f53f8931f4e304af3c758b2ff9a56b0a2a49bd/R/surveyrep.R
   #Not really sure if this will ever actually be useful, but carry over from survey

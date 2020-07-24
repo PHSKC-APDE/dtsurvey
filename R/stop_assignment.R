@@ -1,5 +1,5 @@
 #' Stop a call in a dtsurvey if its part of an assignment
-#' @export
+#'
 stop_assignment <- function(){
 
   callme = sys.calls()

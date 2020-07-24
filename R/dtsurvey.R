@@ -13,6 +13,9 @@
 #'
 dtsurvey = function(DT, psu = NULL, strata = NULL, weight = NULL, nest = TRUE){
 
+  #aglobal bindings
+  . <- sampsize <- NULL
+
   DT = data.table::data.table(DT)
 
   #confirm that all the specified columns are in the dataset
