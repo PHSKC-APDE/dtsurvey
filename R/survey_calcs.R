@@ -33,39 +33,16 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
   #global bindings
   psu <- strata <- NULL
 
-  var_type = match.arg(var_type, c('none', 'se', 'ci'), TRUE)
-  ci_method = match.arg(ci_method, c('mean', 'beta', 'xlogit'))
+  ppp = prep_survey_data(var_type, ci_method, ids, use_df, na.rm, x)
+  x <- ppp$x
+  var_type = ppp$var_type
+  ids = ppp$ids
+  sv = ppp$sv
+  df = ppp$df
+  ci_method = ppp$ci_method
+  st = ppp$st
+  lids = ppp$lids
 
-  if(missing(ids)) stop('Please explicitly pass an id vector')
-
-  sv = get_survey_vars()
-  st = get_survey_type()
-
-
-  ids = which(sv[,`_id` %in% ids])
-
-  #get the df for later
-  #taken from survey:::degf.survey.design2
-  lids = length(ids)
-  if(st %in% 'svydt'){
-    df = length(unique(sv[ids, psu])) -length(unique(sv[ids, strata]))
-  }else if(st %in% 'svyrepdt') {
-    df = qr(as.matrix(sv[ids, .SD, .SDcols=  grep('rep', names(sv))]), tol = 1e-05)$rank - 1
-  }
-
-  if(!use_df) df = Inf
-
-  if(na.rm){
-    ids <- ids[!is.na(x)]
-    x <- x[!is.na(x)]
-  }
-
-  #construct a model matrix if needed
-  if(is.factor(x)){
-    x = model.matrix(~0+x, data = data.table::data.table(x = x))
-  }else{
-    x = matrix(x, ncol = 1)
-  }
 
   if(st %in% 'svydt') ret = calc_mean_dtsurvey(x = x, ids = ids, sv = sv, var = !all(var_type %in% 'none'))
   if(st %in% 'svyrepdt'){
@@ -80,67 +57,7 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
   if(!exists('ret')) stop('No results generated-- check that attribute `type` is available in the parent data.frame')
 
   if(!all(var_type %in% 'none')){
-    v = ret$v
-    ret$v = NULL
-
-    if (is.matrix(v)){
-      se <- sqrt(diag(v))
-    }else{
-      se <- sqrt(v)
-    }
-
-    if(any('se' %in% var_type)){
-      attributes(se) <- NULL
-      ret$se = se
-    }
-
-    if(any('ci' %in% var_type)){
-      #nicked from survey:::tconfint
-      if(ci_method == 'mean') ci = ret$result + se %o% qt(c((1-level)/2, 1-(1-level)/2), df = df)
-      #nicked from survey::svyciprop
-      if(ci_method %in% c('beta', 'xlogit')){
-        m <- ret$result
-        attr(m, 'var') <- v
-
-        if(st %in% 'svyrepdt'){
-          class(m) <- "svrepstat"
-        } else{
-          class(m) <- 'svystat'
-        }
-        names(m) = 1
-
-
-
-        if(ci_method %in% 'xlogit'){
-          xform <- survey::svycontrast(m, quote(log(`1`/(1 - `1`))))
-          ci <- expit(as.vector(confint(xform, 1, level = level,
-                                        df = df)))
-        }
-
-        if(ci_method %in% 'beta'){
-          n.eff <- coef(m) * (1 - coef(m))/vcov(m)
-          rval <- coef(m)[1]
-          attr(rval, "var") <- vcov(m)
-          alpha <- 1 - level
-          # n.eff <- n.eff * (qt(alpha/2, nrow(design) - 1)/qt(alpha/2,
-          #                                                    degf(design)))^2
-          n.eff <- n.eff * (qt(alpha/2, lids - 1)/qt(alpha/2,
-                                                     df))^2
-          ci <- c(qbeta(alpha/2, n.eff * rval, n.eff * (1 - rval) +
-                          1), qbeta(1 - alpha/2, n.eff * rval + 1, n.eff *
-                                      (1 - rval)))
-        }
-      }
-
-      if(is.matrix(ci)){
-        ret$lower = ci[,1]
-        ret$upper = ci[,2]
-      }else{
-        ret$lower = ci[1]
-        ret$upper = ci[2]
-      }
-    }
-
+    ret <- calculate_error(ret, ci_method, level, df, var_type, lids, st)
   }
   names(ret) = NULL
   #r = t(ret)
@@ -222,5 +139,127 @@ calc_mean_dtsurvey <- function(x, ids, sv, var = T){
  }
 
 
+  return(ret)
+}
+
+#' Prepare data for survey calculations
+#' @param var_type character.
+#' @param ci_method character.
+#' @param ids vector.
+#' @param use_df logical.
+#' @param na.rm logical.
+#' @param x vector
+#'
+#' @details This function is merely a helper for \code{smean} and \code{stotal}.
+#'
+prep_survey_data <- function(var_type, ci_method, ids, use_df, na.rm, x){
+  var_type = match.arg(var_type, c('none', 'se', 'ci'), TRUE)
+  ci_method = match.arg(ci_method, c('mean', 'beta', 'xlogit'))
+
+  if(missing(ids)) stop('Please explicitly pass an id vector')
+
+  sv = get_survey_vars()
+  st = get_survey_type()
+
+  ids = which(sv[,`_id` %in% ids])
+
+  #get the df for later
+  #taken from survey:::degf.survey.design2
+  lids = length(ids)
+  if(st %in% 'svydt'){
+    df = length(unique(sv[ids, psu])) -length(unique(sv[ids, strata]))
+  }else if(st %in% 'svyrepdt') {
+    df = qr(as.matrix(sv[ids, .SD, .SDcols=  grep('rep', names(sv))]), tol = 1e-05)$rank - 1
+  }
+
+  if(!use_df) df = Inf
+
+  if(na.rm){
+    ids <- ids[!is.na(x)]
+    x <- x[!is.na(x)]
+  }
+
+  #construct a model matrix if needed
+  if(is.factor(x)){
+    x = model.matrix(~0+x, data = data.table::data.table(x = x))
+  }else{
+    x = matrix(x, ncol = 1)
+  }
+
+  return(list(var_type = var_type, x = x, ids = ids, ci_method =  ci_method, sv = sv, df = df, st = st, lids = lids))
+
+}
+
+
+#' Calculate error statistics for survey means
+#' @param ret list. contains the results from calc_mean/total_...
+#' @param ci_method character. Type of ci (if any, to calculate)
+#' @param level numeric. 0 - 1, confidence level to return for ci
+#' @param df numeric. degrees of freedom
+#' @param var_type character. type of variability/variance to return
+#' @param lids numeric. Length of ids (e.g. number of rows of data to consider)
+#' @param st character. survey type
+#'
+calculate_error <- function(ret, ci_method, level, df, var_type, lids, st){
+  v = ret$v
+  ret$v = NULL
+
+  if (is.matrix(v)){
+    se <- sqrt(diag(v))
+  }else{
+    se <- sqrt(v)
+  }
+
+  if(any('se' %in% var_type)){
+    attributes(se) <- NULL
+    ret$se = se
+  }
+
+  if(any('ci' %in% var_type)){
+    #nicked from survey:::tconfint
+    if(ci_method == 'mean') ci = ret$result + se %o% qt(c((1-level)/2, 1-(1-level)/2), df = df)
+    #nicked from survey::svyciprop
+    if(ci_method %in% c('beta', 'xlogit')){
+      m <- ret$result
+      attr(m, 'var') <- v
+
+      if(st %in% 'svyrepdt'){
+        class(m) <- "svrepstat"
+      } else{
+        class(m) <- 'svystat'
+      }
+      names(m) = 1
+
+
+
+      if(ci_method %in% 'xlogit'){
+        xform <- survey::svycontrast(m, quote(log(`1`/(1 - `1`))))
+        ci <- expit(as.vector(confint(xform, 1, level = level,
+                                      df = df)))
+      }
+
+      if(ci_method %in% 'beta'){
+        n.eff <- coef(m) * (1 - coef(m))/vcov(m)
+        rval <- coef(m)[1]
+        attr(rval, "var") <- vcov(m)
+        alpha <- 1 - level
+        # n.eff <- n.eff * (qt(alpha/2, nrow(design) - 1)/qt(alpha/2,
+        #                                                    degf(design)))^2
+        n.eff <- n.eff * (qt(alpha/2, lids - 1)/qt(alpha/2,
+                                                   df))^2
+        ci <- c(qbeta(alpha/2, n.eff * rval, n.eff * (1 - rval) +
+                        1), qbeta(1 - alpha/2, n.eff * rval + 1, n.eff *
+                                    (1 - rval)))
+      }
+    }
+
+    if(is.matrix(ci)){
+      ret$lower = ci[,1]
+      ret$upper = ci[,2]
+    }else{
+      ret$lower = ci[1]
+      ret$upper = ci[2]
+    }
+  }
   return(ret)
 }
