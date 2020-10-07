@@ -1,8 +1,8 @@
 #' Get survey type
 #'
 #'@details
-#' This function is only designed to be called by other functions within J of a data.table.
-#' It extracts the stype attribute data.table from the calling data.table to be used for calculating the survey metrics
+#' This function is only designed to be called by other functions within J of a dtsurvey/dtrepsurvey
+#' It extracts the stype attribute from the calling dtsurvey/dtrepsurvey to be used for calculating the survey metrics
 #'
 #' @export
 #'

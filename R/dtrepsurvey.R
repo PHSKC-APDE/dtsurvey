@@ -57,7 +57,7 @@ dtrepsurvey.svyrep.design <- function(svyrep, ...){
   data.table::setattr(DT, 'combined.weights', svyrep$combined.weights)
   data.table::setattr(DT, 'mse', svyrep$mse)
   data.table::setattr(DT, 'selfrep', svyrep$selfrep)
-  setattr(DT, 'class', c('dtrepsurvey', class(DT)))
+  setattr(DT, 'class', c('dtrepsurvey', 'dtsurvey', class(DT)))
 
   return(DT)
 }

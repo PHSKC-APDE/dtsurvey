@@ -26,13 +26,18 @@ dtsurvey = function(DT, psu = NULL, strata = NULL, weight = NULL, nest = TRUE){
   }
 
   #confirm that there is no missing design variables
-  miss_chk = unlist(DT[, lapply(.SD, function(x) sum(is.na(x))), .SDcols = c(psu, strata, weight)])
-  miss = which(miss_chk >0)
-  if(length(miss)>0){
-    stop(paste('Missing values in:', paste0(c(psu,strata,weight)[miss], collapse = ', ')))
+  if(!is.null(c(psu, strata, weight))){
+    miss_chk = unlist(DT[, lapply(.SD, function(x) sum(is.na(x))), .SDcols = ])
+    miss = which(miss_chk >0)
+    if(length(miss)>0){
+      stop(paste('Missing values in:', paste0(c(psu,strata,weight)[miss], collapse = ', ')))
+    }
+    sdes = data.table::copy(DT[, .SD, .SDcols = c(psu, strata, weight)])
+  }else{
+    sdes = data.table::copy(DT[, .(hold = .I)])
   }
 
-  sdes = data.table::copy(DT[, .SD, .SDcols = c(psu, strata, weight)])
+
 
   if(is.null(psu)){
     sdes[, psu := .I]
@@ -60,6 +65,7 @@ dtsurvey = function(DT, psu = NULL, strata = NULL, weight = NULL, nest = TRUE){
   }
 
   setnames(sdes, c(psu, weight, strata), c('psu', 'weight', 'strata'))
+  sdes = sdes[, .(psu, weight, strata)]
 
   #create a row id to help keep track of which rows are active
 

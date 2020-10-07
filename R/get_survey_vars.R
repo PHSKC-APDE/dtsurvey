@@ -1,8 +1,8 @@
 #' Get survey vars
 #'
 #'@details
-#' This function is only designed to be called by other functions within J of a data.table.
-#' It extracts the sdes attribute data.table from the calling data.table to be used for calculating the survey metrics
+#' This function is only designed to be called by other functions within J of a dtsurvey or dtrepsurvey.
+#' It extracts the sdes attribute from the calling dtsurvey or dtrepsurvey to be used for calculating the survey metrics
 #'
 #' @export
 #'
