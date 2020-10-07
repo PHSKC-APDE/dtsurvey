@@ -118,3 +118,48 @@ r19.2 = svyby(~num, ~byvar + logi, og, svymean, na.rm = T)
 setorder(r19.1, logi, byvar)
 expect_equal(r19.1[, V1], r19.2[, 'num'])
 
+#confirm that a total, no bys or NAs are equal
+r20.1 = svytotal(~num, og)
+r20.2 = fake_sur[, stotal(num, var_type = 'se', ids = `_id`)]
+expect_equal(as.numeric(r20.1), r20.2$V1, info = 'Simple rep survey totals are equal')
+expect_equal(as.numeric(SE(r20.1)), r20.2$V2, info = 'Simple rep totals ses are equal')
+
+#this time with bys
+r21.1 = svyby(~num, ~byvar, og, svytotal)
+r21.2 = fake_sur[, stotal(num, var_type = 'se', ids = `_id`), by = byvar]
+setorder(r21.2, byvar)
+expect_equal(r21.1$num, r21.2$V1, info = 'Simple rep survey totals are equal, with one byvar')
+expect_equal(as.numeric(SE(r21.1)), r21.2$V2, info = 'Simple rep survey ses are equal, with one byvar')
+
+#simple, with NA
+r22.1 = svytotal(~num_na, og, na.rm = T)
+r22.2 = fake_sur[, stotal(num_na, var_type = 'se', na.rm = TRUE, ids = `_id`)]
+expect_equal(as.numeric(r22.1), r22.2$V1, info = 'Simple rep survey totals are equal, with some NAs')
+expect_equal(as.numeric(SE(r22.1)), r22.2$V2, info = 'Simple rep survey ses are equal, with some NAs')
+
+#simple, with NA and by
+r23.1 = svyby(~num_na, ~byvar, og, svytotal, na.rm = TRUE)
+r23.2 = fake_sur[, stotal(num_na, var_type = 'se', ids = `_id`), by = byvar]
+setorder(r23.2, byvar)
+expect_equal(r23.1$num_na, r23.2$V1, info = 'Simple rep survey totals are equal, with one byvar and some NAs')
+expect_equal(as.numeric(SE(r23.1)), r23.2$V2, info = 'Simple rep survey ses are equal, with one byvar and some NAs')
+
+#factors, by
+r24.1 <- fake_sur[, stotal(fact, ids = `_id`, var_type = c('se', 'ci'), use_df = FALSE), keyby = byvar]
+r24.2 <- as.data.table(svyby(~fact, ~byvar, og, svytotal))
+r24.2 <- melt(r24.2, id.vars = 'byvar')
+setorder(r24.2, byvar, variable)
+expect_equal(r24.1[,V1], r24.2[!substr(variable, 1,2) == 'se', value])
+expect_equal(r24.1[,V2], r24.2[substr(variable, 1,2) == 'se', value])
+r24.3 = confint(svyby(~fact, ~byvar, og, svytotal))
+r24.1[, fact := rep(levels(fake_sur[, fact]),2)]
+setorder(r24.1, fact, byvar)
+expect_equal(unique(r24.1[,V3]), unname(r24.3[,1]))
+expect_equal(unique(r24.1[,V4]), unname(r24.3[,2]))
+
+#converting a survey object into a dtsurvey
+r25 = as.dtsurvey(og)
+expect_equivalent(r25, dtsurvey(fake, psu = 'psu', strata = 'strata', weight = 'weight', nest = T))
+
+r26 = survey::svydesign(~1, strata = ~strata, data = fake, weights = ~weight)
+expect_equivalent(as.dtsurvey(r26), dtsurvey(fake, psu = NULL, strata = 'strata', weight = 'weight', nest = T))

@@ -4,6 +4,7 @@
 \alias{smean}
 \alias{smean.default}
 \alias{smean.character}
+\alias{stotal.character}
 \title{Calculate the survey mean}
 \usage{
 smean(x, ...)
@@ -15,10 +16,13 @@ smean(x, ...)
   var_type = "none",
   ci_method = "mean",
   level = 0.95,
-  use_df = T
+  use_df = T,
+  ...
 )
 
 \method{smean}{character}(x, ...)
+
+\method{stotal}{character}(x, ...)
 }
 \arguments{
 \item{x}{vector. Vector of values to compute a weighted mean over}
@@ -27,7 +31,7 @@ smean(x, ...)
 
 \item{ids}{numeric. list of indices which are being computed}
 
-\item{na.rm}{logical. Passed to `weighted.mean`}
+\item{na.rm}{logical. Determines whether NAs are excluded from the analysis}
 
 \item{var_type}{character. Report variability as one or more of: standard error ("se", default) and confidence interval ("ci")}
 

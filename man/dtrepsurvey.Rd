@@ -2,13 +2,22 @@
 % Please edit documentation in R/dtrepsurvey.R
 \name{dtrepsurvey}
 \alias{dtrepsurvey}
-\title{A function to convert a `svyrep.design` into a dtsvyrep}
+\alias{dtrepsurvey.data.frame}
+\alias{dtrepsurvey.svyrep.design}
+\title{A function to create a dtsvyrep from a data.frame or svyrep.design type object}
 \usage{
-dtrepsurvey(svyrep)
+dtrepsurvey(svyrep, ...)
+
+\method{dtrepsurvey}{data.frame}(svyrep, ...)
+
+\method{dtrepsurvey}{svyrep.design}(svyrep, ...)
 }
 \arguments{
-\item{svyrep}{svyrep.design}
+\item{svyrep}{svyrep.design or an object that inherits data.frame.}
+
+\item{...}{options passed to survey::svrepdesign when svyrep is a data.frame object.
+Ignored for svyrep which already contains the necessary information for transformation}
 }
 \description{
-A function to convert a `svyrep.design` into a dtsvyrep
+A function to create a dtsvyrep from a data.frame or svyrep.design type object
 }

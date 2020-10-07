@@ -1,9 +1,24 @@
-#' A function to convert a `svyrep.design` into a dtsvyrep
-#' @param svyrep svyrep.design
+#' A function to create a dtsvyrep from a data.frame or svyrep.design type object
+#' @param svyrep svyrep.design or an object that inherits data.frame.
+#' @param ... options passed to survey::svrepdesign when svyrep is a data.frame object.
+#'            Ignored for svyrep which already contains the necessary information for transformation
 #' @export
 #' @importFrom data.table data.table as.data.table setattr ".I" setnames
 #'
-dtrepsurvey <- function(svyrep){
+#'
+dtrepsurvey <- function(svyrep, ...){
+  UseMethod('dtrepsurvey', svyrep)
+}
+
+#' @rdname dtrepsurvey
+#' @export
+dtrepsurvey.data.frame <- function(svyrep, ...){
+  dtrepsurvey(svrepdesign(svyrep, ...))
+}
+
+#' @rdname dtrepsurvey
+#' @export
+dtrepsurvey.svyrep.design <- function(svyrep, ...){
 
   #bindings to get past rcheck
   sv <- ids <- scaledata <- cw <- mse <- selfrep <- NULL

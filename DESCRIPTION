@@ -1,6 +1,6 @@
 Package: dtsurvey
 Title: Survey Analysis Using data.table For SPEEEEEED
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: 
     person(given = "Daniel",
            family = "Casey",
@@ -11,7 +11,7 @@ License: What license it uses
 Encoding: UTF-8
 LazyData: true
 Suggests: tinytest
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Imports: 
     data.table (>= 1.12.8),
     survey(>= 4.0)

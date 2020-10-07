@@ -115,3 +115,53 @@ r19.2 = svyby(~api00, ~stype + awards, og, svymean, na.rm = T)
 setorder(r19.1, awards, stype)
 expect_equal(r19.1[, V1], r19.2[, 'api00'])
 
+#confirm that a total, no bys or NAs are equal
+r20.1 = svytotal(~api00, og)
+r20.2 = dt[, stotal(api00, var_type = 'se', ids = `_id`)]
+expect_equal(as.numeric(r20.1), r20.2$V1, info = 'Simple rep survey totals are equal')
+expect_equal(as.numeric(SE(r20.1)), r20.2$V2, info = 'Simple rep totals ses are equal')
+
+#this time with bys
+r21.1 = svyby(~api00, ~dname, og, svytotal)
+r21.2 = dt[, stotal(api00, var_type = 'se', ids = `_id`), by = dname]
+setorder(r21.2, dname)
+expect_equal(r21.1$api00, r21.2$V1, info = 'Simple rep survey totals are equal, with one byvar')
+expect_equal(as.numeric(SE(r21.1)), r21.2$V2, info = 'Simple rep survey ses are equal, with one byvar')
+
+#simple, with NA
+r22.1 = svytotal(~apina, og, na.rm = T)
+r22.2 = dt[, stotal(apina, var_type = 'se', na.rm = TRUE, ids = `_id`)]
+expect_equal(as.numeric(r22.1), r22.2$V1, info = 'Simple rep survey totals are equal, with some NAs')
+expect_equal(as.numeric(SE(r22.1)), r22.2$V2, info = 'Simple rep survey ses are equal, with some NAs')
+
+#simple, with NA and by
+r23.1 = svyby(~apina, ~stype, og, svytotal, na.rm = TRUE)
+r23.2 = dt[, stotal(apina, var_type = 'se', ids = `_id`), by = stype]
+setorder(r23.2, stype)
+expect_equal(r23.1$apina, r23.2$V1, info = 'Simple rep survey totals are equal, with one byvar and some NAs')
+expect_equal(as.numeric(SE(r23.1)), r23.2$V2, info = 'Simple rep survey ses are equal, with one byvar and some NAs')
+
+#factors, by
+r24.1 <- dt[, stotal(awards, ids = `_id`, var_type = c('se', 'ci'), use_df = FALSE), keyby = stype]
+r24.2 <- as.data.table(svyby(~awards, ~stype, og, svytotal))
+r24.2 <- melt(r24.2, id.vars = 'stype')
+setorder(r24.2, stype, variable)
+expect_equal(r24.1[,V1], r24.2[!substr(variable, 1,2) == 'se', value])
+expect_equal(r24.1[,V2], r24.2[substr(variable, 1,2) == 'se', value])
+r24.3 = confint(svyby(~awards, ~stype, og, svytotal))
+r24.1[, fact := rep(levels(dt[, awards]),3)]
+setorder(r24.1, fact, stype)
+expect_equal(unique(r24.1[,V3]), unname(r24.3[,1]))
+expect_equal(unique(r24.1[,V4]), unname(r24.3[,2]))
+
+#passing in a data.frame of sorts
+data(scd)
+# use BRR replicate weights from Levy and Lemeshow
+repweights<-2*cbind(c(1,0,1,0,1,0), c(1,0,0,1,0,1), c(0,1,1,0,0,1),
+                    c(0,1,0,1,1,0))
+
+r25.1 <- dtrepsurvey(svrepdesign(data=scd, type="BRR", repweights=repweights, combined.weights=FALSE))
+r25.2 <- dtrepsurvey(scd, type="BRR", repweights=repweights, combined.weights=FALSE)
+r25.3 <- dtrepsurvey(as.data.table(scd), type="BRR", repweights=repweights, combined.weights=FALSE)
+expect_equal(r25.1, r25.2)
+expect_equal(r25.1,r25.3)
