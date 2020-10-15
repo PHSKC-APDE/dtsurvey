@@ -20,17 +20,17 @@ dtsurvey = function(DT, psu = NULL, strata = NULL, weight = NULL, nest = TRUE){
             DT already has a column named `_id`. Please rename that column and rerun.' = !"_id" %in% names(DT))
 
   #confirm that all the specified columns are in the dataset
-  cols = setdiff(c(psu, strata, weight), names(DT))
+  cols = c(psu, strata, weight)[!c(psu, strata, weight) %in% names(DT)]
   if(length(cols)>0){
     stop(paste('These columns were not found in DT:'), paste0(cols, collapse = ', '))
   }
 
   #confirm that there is no missing design variables
   if(!is.null(c(psu, strata, weight))){
-    miss_chk = unlist(DT[, lapply(.SD, function(x) sum(is.na(x))), .SDcols = ])
+    miss_chk = unlist(DT[, lapply(.SD, function(x) sum(is.na(x))), .SDcols = c(psu, strata, weight)])
     miss = which(miss_chk >0)
     if(length(miss)>0){
-      stop(paste('Missing values in:', paste0(c(psu,strata,weight)[miss], collapse = ', ')))
+      stop(paste('Missing values in:', paste0(names(miss), collapse = ', ')))
     }
     sdes = data.table::copy(DT[, .SD, .SDcols = c(psu, strata, weight)])
   }else{

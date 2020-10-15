@@ -11,35 +11,35 @@ sur_mean = a %>% summarize(mean = survey_mean(api00))
 
 
 dt_survey = function(x, psu = NULL, strata = NULL, weight = NULL){
-  
+
   x = data.table(x)
-  
+
   #add the various attributes
-  
+
   if(!is.null(psu)){
     setattr(x, 'psu', x[, .SD, .SDcols = psu][[1]])
   }else{
     setattr(x, 'psu', rep(1, nrow(x)))
   }
-  
+
   if(!is.null(weight)){
     setattr(x, 'weight', x[, .SD, .SDcols = weight][[1]])
   }else{
     setattr(x, 'weight', rep(1, nrow(x)))
   }
-  
+
   if(!is.null(strata)){
     setattr(x, 'strata', x[, .SD, .SDcols = strata][[1]])
   }else{
     setattr(x, 'strata', rep(1, nrow(x)))
   }
-  
-  
-  #create a row id to help keep track of which rows are active 
+
+
+  #create a row id to help keep track of which rows are active
   x[, `_id` := .I]
-  
+
   return(x)
-  
+
 }
 
 b <- dt_survey(apiclus1, 'dnum', weight = 'pw')

@@ -14,6 +14,7 @@ get_survey_type <- function(){
 
   #find the last `[.data.table` call
   lastcall = which(vapply(callme, function(x) grepl('[.data.table', as.character(x)[1], fixed = T), TRUE))
+  lastcall2 = which(vapply(callme, function(x) grepl('[.dtsurvey', as.character(x)[1], fixed = T), TRUE))
 
   if(!any(lastcall)) stop('Using a dtsurvey function outside of `[.data.table` context')
 

@@ -2,7 +2,6 @@
 #'
 #' @param x vector. Vector of values to compute a weighted mean over
 #' @param na.rm logical. Determines whether NAs are excluded from the analysis
-#' @param ids numeric. list of indices which are being computed
 #' @param var_type character. Report variability as one or more of: standard error ("se", default) and confidence interval ("ci")
 #' @param level numeric. A value in the range of (0, 1) denoting what level of confidence the CI should be
 #' @param ci_method character. Determines how the ci (if requested via \code{var_type}) should be calculated
@@ -10,6 +9,9 @@
 #'                  When the method is 'mean', the results should match \code{survey::svymean} while other options match \code{survey::svyciprop}
 #' @param use_df logical. Should the estimated degrees of freedom by used to calculate CIs? Default is TRUE. FALSE implies df = Inf.
 #'               \code{confint(survey::svymean())} uses Inf as a default while \code{confint(survey::svyciprop)} uses \code{degf(design)}
+#' @param ids numeric. indices which are being computed. Can be generally omitted and will be added to the call via `[.dtsurvey`
+#' @param sv data.table. Data.table of psu, strata, weight and the like to properly do survey statistics.
+#' @param st character. type of survey dataset being analyzed. Can be generally omitted and will be added to the call via `[.dtsurvey`
 #' @param ... other arguments. Currently unused.
 #' @return a list. Entry 1 is the result of the calculation (e.g. the mean value). Other item entries are (optionally) the se, lower, and upper.
 #' @details When x is a factor, results are returned in order of \code{levels(x)}.
@@ -28,16 +30,14 @@ smean <- function(x, ...){
 
 #' @rdname smean
 #' @export
-smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean',level = .95, use_df = T, ...){
+smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',level = .95, use_df = T, ids, sv, ...){
 
   #global bindings
   psu <- strata <- NULL
 
-  ppp = prep_survey_data(var_type, ci_method, ids, use_df, na.rm, x)
+  ppp = prep_survey_data(var_type, ci_method, ids, use_df, na.rm, x, sv)
   x <- ppp$x
   var_type = ppp$var_type
-  ids = ppp$ids
-  sv = ppp$sv
   df = ppp$df
   ci_method = ppp$ci_method
   st = ppp$st
@@ -58,6 +58,8 @@ smean.default = function(x, ids, na.rm = T, var_type = 'none', ci_method = 'mean
 
   if(!all(var_type %in% 'none')){
     ret <- calculate_error(ret, ci_method, level, df, var_type, lids, st)
+  }else{
+    ret = ret[[1]]
   }
   names(ret) = NULL
   #r = t(ret)
@@ -151,18 +153,16 @@ calc_mean_dtsurvey <- function(x, ids, sv, var = T){
 #' @param use_df logical.
 #' @param na.rm logical.
 #' @param x vector
+#' @param sv data.table
 #'
 #' @details This function is merely a helper for \code{smean} and \code{stotal}.
 #' @noRd
-prep_survey_data <- function(var_type, ci_method, ids, use_df, na.rm, x){
+prep_survey_data <- function(var_type, ci_method, ids, use_df, na.rm, x, sv){
   psu <- strata <- NULL #to make the no visible binding problem go away
   var_type = match.arg(var_type, c('none', 'se', 'ci'), TRUE)
   ci_method = match.arg(ci_method, c('mean', 'beta', 'xlogit'))
 
   if(missing(ids)) stop('Please explicitly pass an id vector')
-
-  sv = get_survey_vars()
-  st = get_survey_type()
 
   ids = which(sv[,`_id` %in% ids])
 
@@ -325,6 +325,8 @@ stotal.default = function(x, ids, na.rm = T, var_type = 'none', level = .95, use
 
   if(!all(var_type %in% 'none')){
     ret <- calculate_error(ret, ci_method, level, df, var_type, lids, st)
+  }else{
+    ret = ret[[1]]
   }
   names(ret) = NULL
   #r = t(ret)
