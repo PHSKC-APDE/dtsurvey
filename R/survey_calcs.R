@@ -30,18 +30,20 @@ smean <- function(x, ...){
 
 #' @rdname smean
 #' @export
-smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',level = .95, use_df = T, ids, sv, ...){
+smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',level = .95, use_df = T, ids, sv, st, ...){
 
   #global bindings
   psu <- strata <- NULL
 
-  ppp = prep_survey_data(var_type, ci_method, ids, use_df, na.rm, x, sv)
+  ppp = prep_survey_data(var_type, ci_method, ids, use_df, na.rm, x, sv, st)
   x <- ppp$x
   var_type = ppp$var_type
   df = ppp$df
   ci_method = ppp$ci_method
-  st = ppp$st
   lids = ppp$lids
+  sv = ppp$sv
+  st = ppp$st
+  ids = ppp$ids
 
 
   if(st %in% 'svydt') ret = calc_mean_dtsurvey(x = x, ids = ids, sv = sv, var = !all(var_type %in% 'none'))
@@ -154,17 +156,19 @@ calc_mean_dtsurvey <- function(x, ids, sv, var = T){
 #' @param na.rm logical.
 #' @param x vector
 #' @param sv data.table
+#' @param st character.
 #'
 #' @details This function is merely a helper for \code{smean} and \code{stotal}.
 #' @noRd
-prep_survey_data <- function(var_type, ci_method, ids, use_df, na.rm, x, sv){
+prep_survey_data <- function(var_type, ci_method, ids, use_df, na.rm, x, sv, st){
   psu <- strata <- NULL #to make the no visible binding problem go away
   var_type = match.arg(var_type, c('none', 'se', 'ci'), TRUE)
   ci_method = match.arg(ci_method, c('mean', 'beta', 'xlogit'))
 
   if(missing(ids)) stop('Please explicitly pass an id vector')
 
-  ids = which(sv[,`_id` %in% ids])
+  #don't need this because sv should remain sorted by id
+  #ids = which(sv[,`_id` %in% ids])
 
   #get the df for later
   #taken from survey:::degf.survey.design2
@@ -271,10 +275,12 @@ calculate_error <- function(ret, ci_method, level, df, var_type, lids, st){
 #'
 #' @param x vector. Vector of values to compute a weighted total over
 #' @param na.rm logical. Determines whether NAs are removed from calculations
-#' @param ids numeric. list of indices which are being computed.
 #' @param var_type character. Report variability as one or more of: standard error ("se", default) and confidence interval ("ci")
 #' @param level numeric. A value in the range of (0, 1) denoting what level of confidence the CI should be
 #' @param use_df logical. Should the estimated degrees of freedom by used to calculate CIs? Default is FALSE (different from \code{smean}. FALSE implies df = Inf.
+#' @param ids numeric. indices which are being computed. Can be generally omitted and will be added to the call via `[.dtsurvey`
+#' @param sv data.table. Data.table of psu, strata, weight and the like to properly do survey statistics.
+#' @param st character. type of survey dataset being analyzed. Can be generally omitted and will be added to the call via `[.dtsurvey`
 #' @param ... other arguments. Currently unused.
 #' @return a list. Entry 1 is the result of the calculation (e.g. the mean value). Other item entries are (optionally) the se, lower, and upper.
 #' @details When x is a factor, results are returned in order of \code{levels(x)}.
@@ -293,7 +299,7 @@ stotal <- function(x, ...){
 
 #' @rdname stotal
 #' @export
-stotal.default = function(x, ids, na.rm = T, var_type = 'none', level = .95, use_df = FALSE, ...){
+stotal.default = function(x, na.rm = T, var_type = 'none', level = .95, use_df = FALSE, ids, sv, st, ...){
 
   #global bindings
   psu <- strata <- NULL
@@ -301,7 +307,7 @@ stotal.default = function(x, ids, na.rm = T, var_type = 'none', level = .95, use
   #alternate methods CI making don't apply to totals
   ci_method = 'mean'
 
-  ppp = prep_survey_data(var_type, ci_method, ids, use_df, na.rm, x)
+  ppp = prep_survey_data(var_type, ci_method, ids, use_df, na.rm, x, sv, st)
   x <- ppp$x
   var_type = ppp$var_type
   ids = ppp$ids
