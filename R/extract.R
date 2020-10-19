@@ -8,9 +8,9 @@
 #' @name extract
 "[.dtsurvey" <- function(x, i, j, by, ...){
 
+  mc <- match.call()
 
   if(!missing(j)){
-    mc <- match.call()
     #check to see if survey functions should be swapped in or out
     st = attr(x, 'stype')
     is_svy = st %in% c('svydt', 'svyrepdt')

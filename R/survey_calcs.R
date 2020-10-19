@@ -35,6 +35,9 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
   #global bindings
   psu <- strata <- NULL
 
+  if(is.factor(x)) level_x = levels(x)
+  wasfactor = is.factor(x)
+
   ppp = prep_survey_data(var_type, ci_method, ids, use_df, na.rm, x, sv, st)
   x <- ppp$x
   var_type = ppp$var_type
@@ -60,10 +63,16 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
 
   if(!all(var_type %in% 'none')){
     ret <- calculate_error(ret, ci_method, level, df, var_type, lids, st)
+    names(ret) = NULL
+    if(wasfactor) names(ret[[1]]) <- level_x
+
   }else{
+    names(ret) = NULL
     ret = ret[[1]]
+    if(wasfactor) names(ret) <- level_x
+    if(wasfactor) ret = list(ret)
   }
-  names(ret) = NULL
+
   #r = t(ret)
   #if(is.factor(x))
   return(ret)
@@ -283,8 +292,9 @@ calculate_error <- function(ret, ci_method, level, df, var_type, lids, st){
 #' @param st character. type of survey dataset being analyzed. Can be generally omitted and will be added to the call via `[.dtsurvey`
 #' @param ... other arguments. Currently unused.
 #' @return a list. Entry 1 is the result of the calculation (e.g. the mean value). Other item entries are (optionally) the se, lower, and upper.
-#' @details When x is a factor, results are returned in order of \code{levels(x)}.
-#'          When \code{stotal} is called without assignment (e.g. \code{:=}), the result value will translate from a list to a data.table, even if only the mean is returned.
+#' @details When x is a factor, results are returned in a named list with the order order of \code{levels(x)}.
+#'          For simple calculations where var_type == 'none' (e.g. \code{dt[,smean(x)]}) where x is not a factor, a vector (usually numeric) will be returned.
+#'          Factors return a list() and therefore a data.table will likely be returned.
 #'
 #' @export
 #'
@@ -300,6 +310,9 @@ stotal <- function(x, ...){
 #' @rdname stotal
 #' @export
 stotal.default = function(x, na.rm = T, var_type = 'none', level = .95, use_df = FALSE, ids, sv, st, ...){
+
+  if(is.factor(x)) level_x = levels(x)
+  wasfactor = is.factor(x)
 
   #global bindings
   psu <- strata <- NULL
@@ -331,10 +344,17 @@ stotal.default = function(x, na.rm = T, var_type = 'none', level = .95, use_df =
 
   if(!all(var_type %in% 'none')){
     ret <- calculate_error(ret, ci_method, level, df, var_type, lids, st)
+    names(ret) = NULL
+    if(wasfactor) names(ret[[1]]) <- level_x
+
   }else{
+    names(ret) = NULL
     ret = ret[[1]]
+    if(wasfactor) names(ret) <- level_x
+    if(wasfactor) ret = list(ret)
+
   }
-  names(ret) = NULL
+
   #r = t(ret)
   #if(is.factor(x))
   return(ret)

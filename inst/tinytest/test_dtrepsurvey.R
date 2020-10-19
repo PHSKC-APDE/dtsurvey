@@ -13,6 +13,7 @@ apiclus1$stypena[sample(1:nrow(apiclus1), 10)] <- NA
 apiclus1$bothnum = as.numeric(apiclus1$both) - 1
 dclus1<-svydesign(id=~dnum, weights=~pw, data=apiclus1, fpc=~fpc)
 og = as.svrepdesign(dclus1)
+herp = data.table(og$variables)
 dt = dtrepsurvey(og)
 
 #confirm that a mean, no bys or NAs are equal
@@ -165,3 +166,7 @@ r25.2 <- dtrepsurvey(scd, type="BRR", repweights=repweights, combined.weights=FA
 r25.3 <- dtrepsurvey(as.data.table(scd), type="BRR", repweights=repweights, combined.weights=FALSE)
 expect_equal(r25.1, r25.2)
 expect_equal(r25.1,r25.3)
+
+#factors, se
+
+
