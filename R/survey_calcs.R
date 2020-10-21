@@ -12,11 +12,12 @@
 #' @param ids numeric. indices which are being computed. Can be generally omitted and will be added to the call via `[.dtsurvey`
 #' @param sv data.table. Data.table of psu, strata, weight and the like to properly do survey statistics.
 #' @param st character. type of survey dataset being analyzed. Can be generally omitted and will be added to the call via `[.dtsurvey`
+#' @param add_levels logical. If TRUE, add a "levels" item to the return list (and forcing the return object to be a list even if var_type == 'none')
 #' @param ... other arguments. Currently unused.
-#' @return a list. Entry 1 is the result of the calculation (e.g. the mean value). Other item entries are (optionally) the se, lower, and upper.
-#' @details When x is a factor, results are returned in order of \code{levels(x)}.
-#'          When \code{smean} is called without assignment (e.g. \code{:=}), the result value will translate from a list to a data.table, even if only the mean is returned.
-#'
+#' @return a vector or a list (the latter likely converted into a data.table) containing the results
+#' @details If var_type is "none", a vector is returned. For factors, the names of the vector correspond to the levels, unless add_levels is TRUE.
+#'          In that case a list/data.table is returned with a column for the result and a column specifying the levels. When var_type is not "none" a named list is returned (and then likely converted into a data.table).
+#'          The list (which should be named) is ordered in the following manner (by slot): result, se, lower, upper, levels -- when requested.
 #' @export
 #'
 #' @importFrom stats model.matrix qt confint coef vcov qbeta
@@ -30,13 +31,14 @@ smean <- function(x, ...){
 
 #' @rdname smean
 #' @export
-smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',level = .95, use_df = T, ids, sv, st, ...){
+smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',level = .95, use_df = T, ids, sv, st, add_levels = FALSE, ...){
 
   #global bindings
   psu <- strata <- NULL
 
   if(is.factor(x)) level_x = levels(x)
   wasfactor = is.factor(x)
+  if(is.factor(x) && !ci_method %in% 'mean') stop(paste0('Invalid `ci_method` for factors: ', ci_method,'. Please use the "mean" option or "nonsurvey_binary"'))
 
   ppp = prep_survey_data(var_type, ci_method, ids, use_df, na.rm, x, sv, st)
   x <- ppp$x
@@ -63,18 +65,17 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
 
   if(!all(var_type %in% 'none')){
     ret <- calculate_error(ret, ci_method, level, df, var_type, lids, st)
-    names(ret) = NULL
-    if(wasfactor) names(ret[[1]]) <- level_x
-
+    if(wasfactor) ret$levels <- level_x
   }else{
-    names(ret) = NULL
-    ret = ret[[1]]
-    if(wasfactor) names(ret) <- level_x
-    if(wasfactor) ret = list(ret)
+
+    if(wasfactor && add_levels){
+      ret$levels <- level_x
+    }else{
+      ret = ret[[1]]
+      if(wasfactor) names(ret) <- level_x
+    }
   }
 
-  #r = t(ret)
-  #if(is.factor(x))
   return(ret)
 }
 
@@ -182,13 +183,17 @@ prep_survey_data <- function(var_type, ci_method, ids, use_df, na.rm, x, sv, st)
   #get the df for later
   #taken from survey:::degf.survey.design2
   lids = length(ids)
-  if(st %in% 'svydt'){
-    df = length(unique(sv[ids, psu])) -length(unique(sv[ids, strata]))
-  }else if(st %in% 'svyrepdt') {
-    df = qr(as.matrix(sv[ids, .SD, .SDcols=  grep('rep', names(sv))]), tol = 1e-05)$rank - 1
+
+  if(!use_df || all(var_type %in% 'none')){
+    df = Inf
+  }else{
+    if(st %in% 'svydt'){
+      df = length(unique(sv[ids, psu])) -length(unique(sv[ids, strata]))
+    }else if(st %in% 'svyrepdt') {
+      df = qr(as.matrix(sv[ids, .SD, .SDcols=  grep('rep', names(sv))]), tol = 1e-05)$rank - 1
+    }
   }
 
-  if(!use_df) df = Inf
 
   if(na.rm){
     ids <- ids[!is.na(x)]
@@ -215,8 +220,12 @@ prep_survey_data <- function(var_type, ci_method, ids, use_df, na.rm, x, sv, st)
 #' @param var_type character. type of variability/variance to return
 #' @param lids numeric. Length of ids (e.g. number of rows of data to consider)
 #' @param st character. survey type
+#' @param x numeric (matrix). The data aggregated to create ret. This is used for some unweighted error calculations
 #' @noRd
-calculate_error <- function(ret, ci_method, level, df, var_type, lids, st){
+calculate_error <- function(ret, ci_method, level, df, var_type, lids, st, x){
+
+  stopifnot(length(ci_method)<= 1)
+
   v = ret$v
   ret$v = NULL
 
@@ -233,7 +242,26 @@ calculate_error <- function(ret, ci_method, level, df, var_type, lids, st){
 
   if(any('ci' %in% var_type)){
     #nicked from survey:::tconfint
-    if(ci_method == 'mean') ci = ret$result + se %o% qt(c((1-level)/2, 1-(1-level)/2), df = df)
+    if(ci_method == 'mean') ci = ret$result + se %o% stats::qt(c((1-level)/2, 1-(1-level)/2), df = df)
+    if(ci_method == 'unweighted_mean'){
+      if(nrow(x)>30){
+        ci = ret$result + se %o% stats::qt(c((1-level)/2, 1-(1-level)/2), df = nrow(x) - 1)
+      }else{
+        ci = ret$result + se %o% stats::qnorm(c((1-level)/2, 1-(1-level)/2))
+      }
+    }
+
+    if(ci_method == 'unweighted_binary'){
+
+      ci <- matrix(nrow = ncol(x), ncol = 2)
+      for(i in seq_len(ncol(x))){
+        ci[i,] <- stats::prop.test(x = sum(x[, i]), n = nrow(x), conf.level = level, correct = F)$conf.int
+      }
+
+
+    }
+
+
     #nicked from survey::svyciprop
     if(ci_method %in% c('beta', 'xlogit')){
       m <- ret$result
@@ -245,8 +273,6 @@ calculate_error <- function(ret, ci_method, level, df, var_type, lids, st){
         class(m) <- 'svystat'
       }
       names(m) = 1
-
-
 
       if(ci_method %in% 'xlogit'){
         xform <- survey::svycontrast(m, quote(log(`1`/(1 - `1`))))
@@ -291,10 +317,12 @@ calculate_error <- function(ret, ci_method, level, df, var_type, lids, st){
 #' @param sv data.table. Data.table of psu, strata, weight and the like to properly do survey statistics.
 #' @param st character. type of survey dataset being analyzed. Can be generally omitted and will be added to the call via `[.dtsurvey`
 #' @param ... other arguments. Currently unused.
-#' @return a list. Entry 1 is the result of the calculation (e.g. the mean value). Other item entries are (optionally) the se, lower, and upper.
-#' @details When x is a factor, results are returned in a named list with the order order of \code{levels(x)}.
-#'          For simple calculations where var_type == 'none' (e.g. \code{dt[,smean(x)]}) where x is not a factor, a vector (usually numeric) will be returned.
-#'          Factors return a list() and therefore a data.table will likely be returned.
+#' @param add_levels logical. If TRUE, add a "levels" item to the return list (and forcing the return object to be a list even if var_type == 'none')
+#' @return a vector or a list (the latter likely converted into a data.table) containing the results
+#' @details If var_type is "none", a vector is returned. For factors, the names of the vector correspond to the levels, unless add_levels is TRUE.
+#'          In that case a list/data.table is returned with a column for the result and a column specifying the levels. When var_type is not "none" a named list is returned (and then likely converted into a data.table).
+#'          The list (which should be named) is ordered in the following manner (by slot): result, se, lower, upper, levels -- when requested.
+#'
 #'
 #' @export
 #'
@@ -344,19 +372,19 @@ stotal.default = function(x, na.rm = T, var_type = 'none', level = .95, use_df =
 
   if(!all(var_type %in% 'none')){
     ret <- calculate_error(ret, ci_method, level, df, var_type, lids, st)
-    names(ret) = NULL
-    if(wasfactor) names(ret[[1]]) <- level_x
-
+    if(wasfactor) ret$levels <- level_x
   }else{
-    names(ret) = NULL
-    ret = ret[[1]]
-    if(wasfactor) names(ret) <- level_x
-    if(wasfactor) ret = list(ret)
+
+    if(wasfactor && add_levels){
+      ret$levels <- level_x
+    }else{
+      ret = ret[[1]]
+      if(wasfactor) names(ret) <- level_x
+    }
 
   }
 
-  #r = t(ret)
-  #if(is.factor(x))
+
   return(ret)
 }
 

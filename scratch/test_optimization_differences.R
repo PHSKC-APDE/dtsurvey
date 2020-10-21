@@ -6,7 +6,7 @@ library(profvis)
 
 #dumb survey
 set.seed(98112)
-size = 10000000
+size = 1000000000
 fake = data.table(num = runif(size),
                   fact = as.factor(sample(letters[1:5], size, TRUE)),
                   logi = sample(c(TRUE, FALSE), size, TRUE),
@@ -30,11 +30,11 @@ mean2 = function(x) mean(x)
 
 system.time(fake_sur1[, mean(num), by = 'strata', verbose = T])
 print("")
-system.time(fake_sur2[, smean(num, ids = '_id'), by = 'strata', verbose = T])
+system.time(fake_sur2[, smean(num, ids = `_id`), by = 'strata', verbose = T])
 print("")
 system.time(fake_sur3[, mean2(num), by = 'strata', verbose = T])
 
-a <- profvis(fake_sur2[, smean(num, ids = '_id'), by = 'byvar'])
+a <- profvis(fake_sur2[, smean(num), by = 'byvar'])
 
 
 

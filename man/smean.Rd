@@ -11,12 +11,15 @@ smean(x, ...)
 
 \method{smean}{default}(
   x,
-  ids,
   na.rm = T,
   var_type = "none",
   ci_method = "mean",
   level = 0.95,
   use_df = T,
+  ids,
+  sv,
+  st,
+  add_levels = FALSE,
   ...
 )
 
@@ -28,8 +31,6 @@ smean(x, ...)
 \item{x}{vector. Vector of values to compute a weighted mean over}
 
 \item{...}{other arguments. Currently unused.}
-
-\item{ids}{numeric. list of indices which are being computed}
 
 \item{na.rm}{logical. Determines whether NAs are excluded from the analysis}
 
@@ -43,14 +44,23 @@ When the method is 'mean', the results should match \code{survey::svymean} while
 
 \item{use_df}{logical. Should the estimated degrees of freedom by used to calculate CIs? Default is TRUE. FALSE implies df = Inf.
 \code{confint(survey::svymean())} uses Inf as a default while \code{confint(survey::svyciprop)} uses \code{degf(design)}}
+
+\item{ids}{numeric. indices which are being computed. Can be generally omitted and will be added to the call via `[.dtsurvey`}
+
+\item{sv}{data.table. Data.table of psu, strata, weight and the like to properly do survey statistics.}
+
+\item{st}{character. type of survey dataset being analyzed. Can be generally omitted and will be added to the call via `[.dtsurvey`}
+
+\item{add_levels}{logical. If TRUE, add a "levels" item to the return list (and forcing the return object to be a list even if var_type == 'none')}
 }
 \value{
-a list. Entry 1 is the result of the calculation (e.g. the mean value). Other item entries are (optionally) the se, lower, and upper.
+a vector or a list (the latter likely converted into a data.table) containing the results
 }
 \description{
 Calculate the survey mean
 }
 \details{
-When x is a factor, results are returned in order of \code{levels(x)}.
-         When \code{smean} is called without assignment (e.g. \code{:=}), the result value will translate from a list to a data.table, even if only the mean is returned.
+If var_type is "none", a vector is returned. For factors, the names of the vector correspond to the levels, unless add_levels is TRUE.
+         In that case a list/data.table is returned with a column for the result and a column specifying the levels. When var_type is not "none" a named list is returned (and then likely converted into a data.table).
+         The list (which should be named) is ordered in the following manner (by slot): result, se, lower, upper, levels -- when requested.
 }
