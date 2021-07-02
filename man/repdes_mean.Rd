@@ -2,10 +2,10 @@
 % Please edit documentation in R/sur_mean.R
 \name{repdes_mean}
 \alias{repdes_mean}
-\title{calcualte the mean for a replicate survey}
+\title{calculate the mean for a replicate survey}
 \usage{
 repdes_mean(x, ids, sv)
 }
 \description{
-calcualte the mean for a replicate survey
+calculate the mean for a replicate survey
 }

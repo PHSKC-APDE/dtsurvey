@@ -12,12 +12,10 @@
 #' @param ids numeric. indices which are being computed. Can be generally omitted and will be added to the call via `[.dtsurvey`
 #' @param sv data.table. Data.table of psu, strata, weight and the like to properly do survey statistics.
 #' @param st character. type of survey dataset being analyzed. Can be generally omitted and will be added to the call via `[.dtsurvey`
-#' @param add_levels logical. If TRUE, add a "levels" item to the return list (and forcing the return object to be a list even if var_type == 'none')
 #' @param ... other arguments. Currently unused.
 #' @return a vector or a list (the latter likely converted into a data.table) containing the results
-#' @details If var_type is "none", a vector is returned. For factors, the names of the vector correspond to the levels, unless add_levels is TRUE.
-#'          In that case a list/data.table is returned with a column for the result and a column specifying the levels. When var_type is not "none" a named list is returned (and then likely converted into a data.table).
-#'          The list (which should be named) is ordered in the following manner (by slot): result, se, lower, upper, levels -- when requested.
+#' @details If var_type is "none", a vector is returned. For factors, the names of the vector correspond to the levels. When var_type is not "none" a named list is returned (and then likely converted into a data.table).
+#'          The list (which should be named) is ordered in the following manner (by slot): result, se, lower, upper, levels.
 #' @export
 #'
 #' @importFrom stats model.matrix qt confint coef vcov qbeta
@@ -31,7 +29,7 @@ smean <- function(x, ...){
 
 #' @rdname smean
 #' @export
-smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',level = .95, use_df = T, ids, sv, st, add_levels = FALSE, ...){
+smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',level = .95, use_df = T, ids, sv, st, ...){
 
   #global bindings
   psu <- strata <- NULL
@@ -68,12 +66,8 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
     if(wasfactor) ret$levels <- level_x
   }else{
 
-    if(wasfactor && add_levels){
-      ret$levels <- level_x
-    }else{
-      ret = ret[[1]]
-      if(wasfactor) names(ret) <- level_x
-    }
+    ret = ret[[1]]
+    if(wasfactor) names(ret) <- level_x
   }
 
   return(ret)
@@ -257,8 +251,6 @@ calculate_error <- function(ret, ci_method, level, df, var_type, lids, st, x){
       for(i in seq_len(ncol(x))){
         ci[i,] <- stats::prop.test(x = sum(x[, i]), n = nrow(x), conf.level = level, correct = F)$conf.int
       }
-
-
     }
 
 
@@ -317,9 +309,8 @@ calculate_error <- function(ret, ci_method, level, df, var_type, lids, st, x){
 #' @param sv data.table. Data.table of psu, strata, weight and the like to properly do survey statistics.
 #' @param st character. type of survey dataset being analyzed. Can be generally omitted and will be added to the call via `[.dtsurvey`
 #' @param ... other arguments. Currently unused.
-#' @param add_levels logical. If TRUE, add a "levels" item to the return list (and forcing the return object to be a list even if var_type == 'none')
 #' @return a vector or a list (the latter likely converted into a data.table) containing the results
-#' @details If var_type is "none", a vector is returned. For factors, the names of the vector correspond to the levels, unless add_levels is TRUE.
+#' @details If var_type is "none", a vector is returned. For factors, the names of the vector correspond to the levels. It should also be ordered in that way
 #'          In that case a list/data.table is returned with a column for the result and a column specifying the levels. When var_type is not "none" a named list is returned (and then likely converted into a data.table).
 #'          The list (which should be named) is ordered in the following manner (by slot): result, se, lower, upper, levels -- when requested.
 #'
@@ -374,14 +365,8 @@ stotal.default = function(x, na.rm = T, var_type = 'none', level = .95, use_df =
     ret <- calculate_error(ret, ci_method, level, df, var_type, lids, st)
     if(wasfactor) ret$levels <- level_x
   }else{
-
-    if(wasfactor && add_levels){
-      ret$levels <- level_x
-    }else{
-      ret = ret[[1]]
-      if(wasfactor) names(ret) <- level_x
-    }
-
+    ret = ret[[1]]
+    if(wasfactor) names(ret) <- level_x
   }
 
 

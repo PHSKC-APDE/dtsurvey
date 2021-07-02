@@ -36,3 +36,28 @@ check_survey_bits <- function(ids, sv, st){
   if(missing(sv)) stop('Please explicitly pass an survey variables data.table')
   if(missing(st)) stop('Please explicitly pass a survey type')
 }
+
+#' Get the survey variables from a dtsurvey
+#'
+#' @param sur a dtsurvey or dtrepsurey object
+#' @export
+#'
+sv <- function(sur){
+  stopifnot(inherits(sur, 'dtsurvey'))
+
+  attr(sur, 'sdes')
+
+}
+
+
+#' Get the survey type from a dtsurvey
+#'
+#' @param sur a dtsurvey or dtrepsurey object
+#' @export
+#'
+st <- function(sur){
+  stopifnot(inherits(sur, 'dtsurvey'))
+
+  attr(sur, 'stype')
+
+}

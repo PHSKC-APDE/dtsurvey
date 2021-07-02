@@ -2,11 +2,13 @@
 #' @param x vector of data
 #' @param na.rm logical. If TRUE, omit NAs
 #' @param type character. One of 'mean' or 'total' depending on the scale of statistic
+#' @param as_list logical. Return values as list
 #' @param svyrep_attributes list. List of attributes relevant to replicate design surveys
 #' @param sv data.table. Survey vars data.table
 #' @param ids numeric. vector of indices to operate on
 #' @param st character. survey type
-sur_var <- function(x, na.rm = T, type = 'mean', svyrep_attributes, sv, ids, st){
+#' @export
+sur_var <- function(x, na.rm = T, type = 'mean', as_list = TRUE, svyrep_attributes, sv, ids, st){
 
   #Make sure the various inputs are accounted for
   check_survey_bits(ids, sv, st)
@@ -21,19 +23,20 @@ sur_var <- function(x, na.rm = T, type = 'mean', svyrep_attributes, sv, ids, st)
   }
 
   #prep x and ids (mostly removing NAs)
-  ids = prep_ids(ids, na.rm = na.rm)
+  ids = prep_ids(x, ids, na.rm = na.rm)
   x = prep_x(x, na.rm = na.rm)
 
   if(st %in% 'svydt'){
-    return(surdes_var(x, type, ids, sv))
+    r = (surdes_var(x, type, ids, sv))
   }
 
   if(st %in% 'svyrepdt'){
-    return(repdes_var(x, type, ids, sv, svyrep_attributes))
+    r = (repdes_var(x, type, ids, sv, svyrep_attributes))
   }
 
-  stop("Invalid survey type passed")
+  if(as_list) r = list(list(var = r))
 
+  return(r)
 }
 
 #' Calculate the variance/covariance matrix for a survey statistic (normal survey)
@@ -108,6 +111,7 @@ repdes_var <- function(x, type = 'mean', ids, sv, svyrep_attributes){
 #' @param v either a vector of data or a vcov matrix
 #' @param input_type Character. One of 'var' or 'x'. Flags what v represents (x for vector of data) or var for an already computed vcov matrix (usually from sur_var)
 #' @param svyrep_attributes list. Containing arguments passed to \code{sur_var} when computing the variance from a replicate weight design
+#' @export
 sur_se = function(v, input_type = 'var', svyrep_attributes, sv, ids, st){
 
     #Make sure the various inputs are accounted for
@@ -115,7 +119,7 @@ sur_se = function(v, input_type = 'var', svyrep_attributes, sv, ids, st){
   input_type <- match.arg(input_type, c('var', 'x'))
 
   if(st == 'svyrepdt'){
-    if(missing(svyrep_attributes) && st == 'svyrepdt'){
+    if(missing(svyrep_attributes)){
       svyrep_attributes = get_svyrep_attributes()
     }
   }else{
@@ -149,6 +153,7 @@ sur_se = function(v, input_type = 'var', svyrep_attributes, sv, ids, st){
 #' @param sv data.table. Survey vars data.table
 #' @param ids numeric. vector of indices to operate on
 #' @param st character. survey type
+#' @export
 sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_method = 'mean', level = .95, use_df = T, ..., sv, ids, st){
 
   ab_type <- match.arg('agg', 'raw')

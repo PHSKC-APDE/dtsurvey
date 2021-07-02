@@ -4,7 +4,16 @@
 \alias{sur_var}
 \title{Calculate the variance/covariance matrix for a survey statistic}
 \usage{
-sur_var(x, na.rm = T, type = "mean", svyrep_attributes, sv, ids, st)
+sur_var(
+  x,
+  na.rm = T,
+  type = "mean",
+  as_list = TRUE,
+  svyrep_attributes,
+  sv,
+  ids,
+  st
+)
 }
 \arguments{
 \item{x}{vector of data}
@@ -12,6 +21,8 @@ sur_var(x, na.rm = T, type = "mean", svyrep_attributes, sv, ids, st)
 \item{na.rm}{logical. If TRUE, omit NAs}
 
 \item{type}{character. One of 'mean' or 'total' depending on the scale of statistic}
+
+\item{as_list}{logical. Return values as list}
 
 \item{svyrep_attributes}{list. List of attributes relevant to replicate design surveys}
 

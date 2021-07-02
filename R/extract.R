@@ -19,13 +19,11 @@
     #iterate all of the calls in j
     jsub = dtsurvey_j_calls(jsub, is_svy, xname = mc[['x']], st)
     mc[["j"]] <- jsub
-    mc[[1]] <- quote(data.table:::`[.data.table`)
-    res = eval.parent(mc)
-  }else{
-    NextMethod()
+
   }
 
-  #browser()
+  mc[[1]] <- quote(data.table:::`[.data.table`)
+  res = eval.parent(mc)
 
 
 }

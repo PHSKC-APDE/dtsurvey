@@ -9,9 +9,9 @@
 \usage{
 sur_mean(x, ...)
 
-\method{sur_mean}{default}(x, na.rm = T, sv, ids, st)
+\method{sur_mean}{default}(x, na.rm = T, as_list = FALSE, sv, ids, st)
 
-\method{sur_mean}{factor}(x, na.rm = T, add.levels = FALSE, sv, ids, st)
+\method{sur_mean}{factor}(x, na.rm = T, as_list = FALSE, sv, ids, st)
 
 \method{sur_mean}{character}(x, ...)
 }
@@ -20,13 +20,13 @@ sur_mean(x, ...)
 
 \item{na.rm}{logical. Determines whether NA values will be omitted from the analysis}
 
+\item{as_list}{logical. Determines whether the result should returned as a list-- mostly for factors}
+
 \item{sv}{data.table. Survey vars data.table}
 
 \item{ids}{numeric. vector of indices to operate on}
 
 \item{st}{character. survey type}
-
-\item{add_levels}{logical. Determines whether the result should return a two item list (the results, level names)}
 }
 \description{
 Calculate the survey weighted mean of an object
