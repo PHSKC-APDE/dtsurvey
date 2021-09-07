@@ -49,7 +49,9 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
   ids = ppp$ids
 
 
-  if(st %in% 'svydt') ret = calc_mean_dtsurvey(x = x, ids = ids, sv = sv, var = !all(var_type %in% 'none'))
+  if(st %in% c('svydt', 'admin')){
+    ret = calc_mean_dtsurvey(x = x, ids = ids, sv = sv, var = !all(var_type %in% 'none'))
+  }
   if(st %in% 'svyrepdt'){
     repdat = get_svyrep_attributes()
     ret = calc_mean_dtrepsurvey(x = x, sv = sv, ids = ids,
@@ -98,6 +100,7 @@ calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, selfrep= NULL,
     pw<-sv[ids ,pweights]
   else
     pw<-1
+
   ret = list()
 
 
@@ -106,16 +109,7 @@ calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, selfrep= NULL,
   #borrowed from https://github.com/cran/survey/blob/a0f53f8931f4e304af3c758b2ff9a56b0a2a49bd/R/surveyrep.R#L1079
   if(var){
 
-    if (getOption("survey.drop.replicates") && !is.null(selfrep) && all(selfrep)){
-      ret$v<-matrix(0,length(ret$result),length(ret$result))
-    }else{
-      repmeans = sv[ids, lapply(.SD, function(y) colSums(x * pw * y)/sum(pw *y)), .SDcols = grep('rep', names(sv))]
-      repmeans = drop(as.matrix(repmeans))
-      if(NCOL(repmeans)>1) repmeans <- t(repmeans)
-      #calculate the variance
-      ret$v <- survey::svrVar(repmeans, scaledata$scale, scaledata$rscales,mse=mse, coef=ret$result)
-
-    }
+    ret$v = repdes_var(x, type = 'mean', ids, sv, svyrep_attributes) #does this work as I expect?
   }
 
   return(ret)
@@ -206,7 +200,7 @@ prep_survey_data <- function(var_type, ci_method, ids, use_df, na.rm, x, sv, st)
 }
 
 
-#' Calculate error statistics for survey means
+#' OUTDATED Calculate error statistics for survey means
 #' @param ret list. contains the results from calc_mean/total_...
 #' @param ci_method character. Type of ci (if any, to calculate)
 #' @param level numeric. 0 - 1, confidence level to return for ci
@@ -328,7 +322,7 @@ stotal <- function(x, ...){
 
 #' @rdname stotal
 #' @export
-stotal.default = function(x, na.rm = T, var_type = 'none', level = .95, use_df = FALSE, ids, sv, st, ...){
+stotal.default = function(x, na.rm = T, var_type = 'none', level = .95, use_df = T, ids, sv, st, ...){
 
   if(is.factor(x)) level_x = levels(x)
   wasfactor = is.factor(x)

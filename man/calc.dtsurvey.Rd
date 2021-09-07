@@ -5,7 +5,7 @@
 \title{Compute CHI type estimates from a dtsurvey object
  @export}
 \usage{
-calc.dtsurvey(
+\method{calc}{dtsurvey}(
   ph.data,
   what,
   where,

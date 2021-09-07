@@ -7,11 +7,14 @@
 compute(
   DT,
   x,
+  by = NULL,
   metrics,
   ci_method = "mean",
   level = 0.95,
   time_var,
-  time_format
+  time_format,
+  per = 1,
+  window = FALSE
 )
 }
 \arguments{

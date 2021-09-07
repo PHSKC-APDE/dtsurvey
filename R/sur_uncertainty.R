@@ -34,6 +34,10 @@ sur_var <- function(x, na.rm = T, type = 'mean', as_list = TRUE, svyrep_attribut
     r = (repdes_var(x, type, ids, sv, svyrep_attributes))
   }
 
+  if(st %in% 'admin'){
+    r = var(x)
+  }
+
   if(as_list) r = list(list(var = r))
 
   return(r)

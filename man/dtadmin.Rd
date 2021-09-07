@@ -15,5 +15,5 @@ dtadmin(DT, copy = TRUE)
 Convert a data.table into a dtadmin, dtsurvey object to use some additional functionality
 }
 \details{
-dtadmin by default works by reference.
+dtadmin by default copies the dataset (not be reference)
 }

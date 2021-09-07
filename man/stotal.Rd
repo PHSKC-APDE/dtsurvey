@@ -12,7 +12,7 @@ stotal(x, ...)
   na.rm = T,
   var_type = "none",
   level = 0.95,
-  use_df = FALSE,
+  use_df = T,
   ids,
   sv,
   st,

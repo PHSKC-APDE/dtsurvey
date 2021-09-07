@@ -61,7 +61,7 @@ sur_mean.factor = function(x, na.rm = T, as_list = FALSE , sv, ids, st){
 #' @rdname sur_mean
 #' @export
 sur_mean.character <- function(x, ...){
-  stop('Mean of a character is not implemented. Please cast as a factor before hand')
+  stop('Mean of a character is not implemented. Please convert to a factor and rerun.')
 }
 
 #' Calculate the mean from a normal survey

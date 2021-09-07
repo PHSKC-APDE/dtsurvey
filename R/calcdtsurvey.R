@@ -1,4 +1,5 @@
 #' Compute CHI type estimates from a dtsurvey object
+#'
 #'  @export
 calc.dtsurvey = function(ph.data,
                          what,
@@ -81,9 +82,11 @@ calc.dtsurvey = function(ph.data,
     wins = 1
     sub_i = TRUE
   }
+
   #Compute the metric
   res = lapply(wins, function(w){
-    compute(ph.data[sub_i, env = list(sub_i = sub_i)], what, by = by, metrics, ci_method = 'mean', level = ci, time_var = time_var, time_format = time_format, per = per)
+    compute(ph.data[sub_i, env = list(sub_i = sub_i)], what, by = by, metrics, ci_method = 'mean', level = ci,
+            time_var = time_var, time_format = time_format, per = per, window = !(is.logical(sub_i) && sub_i))
   })
 
   res = rbindlist(res)
@@ -99,7 +102,7 @@ calc.dtsurvey = function(ph.data,
 #' @param level numeric between 0 and 1. Lelvel of confidence
 #' @param time_var
 
-compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, time_var, time_format, per = 1){
+compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, time_var, time_format, per = 1, window = FALSE){
 
   sv = attr(DT, 'sdes')
   st = attr(DT, 'stype')
@@ -169,7 +172,9 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
   #time var
   if(!is.null(time_var)){
     time_fun = data.table::substitute2(time_format(time_var[!is.na((x))]), list(time_var = time_var, x=x))
-    by = c(by, time_var) #add time_var to by is specified
+
+    #if we're in a window, don't "by" by time var. Instead, let time_format handle things
+    if(!window) by = c(by, time_var) #add time_var to by is specified
   }else{
     time_fun = NULL
   }
@@ -204,8 +209,8 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
 
   #use something like a = DT[, .(list(a), list(b)), env = list(a = mean_fun, b = total_fun), by = byvar]
   #to capture the se and ci returns and then break out post hoc
-  #if it is a factor, compute some things seperately
-  browser()
+  #if it is a factor, compute some things separately
+  # browser()
   the_call = substitute2(list(
     time = time_fun,
     variable = X,
@@ -244,7 +249,7 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
   if(!xisfactor){
     res = DT[, ccc,
       by = by,
-      env = list(ccc = the_call)]
+      env = list(ccc = the_call)][, level:=NA]
   }else{
     r1 = DT[, ccc,
     by = by,
@@ -255,7 +260,7 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
       numerator = .N
     ),
     by = c(by, x)]
-    setnames(r2, x, 'levels')
+    setnames(r2, x, 'level')
 
     r1[, id := .I]
 
@@ -271,7 +276,6 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
     }else{
       r1m = NULL
       res[, c('mean', 'mean_se', 'mean_lower', 'mean_upper') := rbindlist(mean)]
-
     }
   }
 
@@ -312,6 +316,14 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
     res[, c('rate', paste0('rate', c('_se', '_lower', '_upper'))) := .SD * per,
         .SDcols = c('mean', paste0('mean_',c('se', 'lower', 'upper')))]
     res[, rate_per := per]
+  }
+
+
+  #if it was in a window, change the time variable to be the time_vars name
+  if(window){
+    data.table::setnames(res, 'time', time_var)
+  }else{
+    res[, time := NULL] #already captured in the by var stuff
   }
 
   return(res)
