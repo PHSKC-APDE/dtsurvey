@@ -44,7 +44,7 @@ sur_var <- function(x, na.rm = T, type = 'mean', as_list = TRUE, svyrep_attribut
 }
 
 #' Calculate the variance/covariance matrix for a survey statistic (normal survey)
-#' @param x vector of data
+#' @param x matrix of data
 #' @param type character. One of 'mean' or 'total' depending on the scale of statistic
 #' @param sv data.table. Survey vars data.table
 #' @param ids numeric. vector of indices to operate on
@@ -52,18 +52,23 @@ surdes_var <- function(x, type = 'mean', ids, sv){
 
   type <- match.arg(type, c('mean', 'total'))
   if(type == 'mean'){
-    psum<-sum(sv$weight[ids])
-    x = x *sv$weight[ids]/psum
+
+    pweights<-sv$weight[ids]
+    psum<-sum(pweights)
+    average<-colSums(x*pweights/psum)
+    x<-sweep(x,2,average)
+    v<-survey::svyrecvar(x * sv$weight[ids]/psum,
+                         data.frame(psu = sv$psu[ids]),
+                         data.frame(strata = sv$strata[ids]),
+                         list(popsize = NULL, sampsize = as.matrix(sv$sampsize[ids], ncol = 1)),
+                         postStrata=NULL)
+
+
   }else if(type == 'total'){
     x = x/sv$weight[ids]
   }
 
-  v<-survey::svyrecvar(x,
-                       data.frame(psu = sv$psu[ids]),
-                       data.frame(strata = sv$strata[ids]),
-                       list(popsize = NULL, sampsize = as.matrix(sv$sampsize[ids], ncol = 1)),
-                       postStrata=NULL)
-
+  return(v)
 }
 
 #' Calculate the variance/covariance matrix for a survey statistic (replicate design)
@@ -160,12 +165,12 @@ sur_se = function(v, input_type = 'var', svyrep_attributes, sv, ids, st){
 #' @export
 sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_method = 'mean', level = .95, use_df = T, ..., sv, ids, st){
 
-  ab_type <- match.arg('agg', 'raw')
+  ab_type <- match.arg(ab_type, c('agg', 'raw'))
   check_survey_bits(ids, sv, st)
   lids = nrow(st) #This should always be the number of observations
 
   if(ab_type == 'agg'){
-    stopifnot('Expecting a matrix for b' = !inherits(b, 'matrix'))
+    stopifnot('Expecting a matrix for b' = inherits(b, 'matrix'))
     res <- a
     vcov <- b
   }
@@ -195,7 +200,7 @@ sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_meth
   }
 
   #calculate the se
-  se = sur_se(vcov)
+  se = sur_se(vcov, sv = sv, ids = ids, st = st)
 
 
   if(ci_method == 'mean'){

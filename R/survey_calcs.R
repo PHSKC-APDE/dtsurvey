@@ -48,28 +48,42 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
   st = ppp$st
   ids = ppp$ids
 
-
-  if(st %in% c('svydt', 'admin')){
-    ret = calc_mean_dtsurvey(x = x, ids = ids, sv = sv, var = !all(var_type %in% 'none'))
-  }
-  if(st %in% 'svyrepdt'){
-    repdat = get_svyrep_attributes()
-    ret = calc_mean_dtrepsurvey(x = x, sv = sv, ids = ids,
-                                scaledata = repdat$scaledata,
-                                cw = repdat$combined.weights,
-                                mse = repdat$mse,
-                                selfrep = repdat$selfrep,
-                                var = !all(var_type %in% 'none'))
-  }
-  if(!exists('ret')) stop('No results generated-- check that attribute `type` is available in the parent data.table')
-
-  if(!all(var_type %in% 'none')){
-    ret <- calculate_error(ret, ci_method, level, df, var_type, lids, st)
-    if(wasfactor) ret$levels <- level_x
+  #get attributes for replicate surveys
+  if(st == 'svyrepdt'){
+    svyrep_attributes = get_svyrep_attributes()
   }else{
+    svyrep_attributes = NULL
+  }
+  #list for storing the result
+  ret = list()
 
-    ret = ret[[1]]
-    if(wasfactor) names(ret) <- level_x
+  #compute the mean
+  ret$result = sur_mean(x = x, na.rm = na.rm, as_list = FALSE, sv = sv, ids = ids, st = st)
+
+  #compute the variance/uncertainty if required
+  if(!all(var_type %in% 'none')){
+    ret$v = sur_var(x, na.rm = na.rm, type = 'mean', as_list = FALSE,
+                    svyrep_attributes = svyrep_attributes, sv = sv, ids = ids, st = st)
+
+    if('se' %in% var_type){
+      ret$se = sur_se(ret$v, input_type = 'var', svyrep_attributes = svyrep_attributes,
+                      sv = sv, ids = ids, st = st)
+    }
+
+    if('ci' %in% var_type){
+      retci = sur_ci(a = ret$result, b = ret$v, ab_type = 'agg', ci_part = 'both',
+                      ci_method = ci_method, level = level, use_df = use_df,
+                      sv = sv, ids = ids, st = st)
+      ret$lower = retci[,1]
+      ret$upper = retci[,2]
+    }
+
+    ret$v <- NULL #don't return the vcov matrix back
+
+    if(wasfactor) ret$levels = names(ret$result)
+
+  }else{
+    ret = ret$result
   }
 
   return(ret)
@@ -80,70 +94,6 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
 smean.character <- function(x, ...){
   stop(paste("Don't know how to deal with objects of class: 'character'. Consider converting into a factor before running smean"))
 
-}
-
-#' An internal function to calculate the mean (and optionally, SE and CI) from a dtrepsurvey object
-#' @param x matrix. Results from the mean call
-#' @param ids logical. vector determining which rows are being calculated on.
-#' @param sv data.table survey variables data.table
-#' @param scaledata list the different scale bits from svrepdesigns
-#' @param cw logical. denotes combined weights
-#' @param mse logical. passed to survey::svrVar
-#' @param selfrep logical. Used for some logic taken from survey:::svymean.svrepdesign
-#' @param var logical. Should the vcov matrix be returned?
-#' @importFrom survey svrVar
-#' @noRd
-calc_mean_dtrepsurvey <- function(x, sv, ids, scaledata, cw, mse, selfrep= NULL, var = T){
-  # ttps://github.com/cran/survey/blob/a0f53f8931f4e304af3c758b2ff9a56b0a2a49bd/R/surveyrep.R
-  #Not really sure if this will ever actually be useful, but carry over from survey
-  if(!cw)
-    pw<-sv[ids ,pweights]
-  else
-    pw<-1
-
-  ret = list()
-
-
-  ret$result <- colSums(sv[ids, pweights] * x)/sum(sv[ids, pweights])
-
-  #borrowed from https://github.com/cran/survey/blob/a0f53f8931f4e304af3c758b2ff9a56b0a2a49bd/R/surveyrep.R#L1079
-  if(var){
-
-    ret$v = repdes_var(x, type = 'mean', ids, sv, svyrep_attributes) #does this work as I expect?
-  }
-
-  return(ret)
-
-}
-
-#' An internal function to calculate the mean (and optionally, SE and CI) from a normal dtsurvey object
-#' @param x matrix. For calculating column means
-#' @param ids logical. vector determining which rows are being calculated on.
-#' @param sv data.table. DT of the survey variables
-#' @param var logical. Should the variance be calculated and returned?
-#' @importFrom survey svyrecvar
-#' @noRd
-calc_mean_dtsurvey <- function(x, ids, sv, var = T){
-
-  psum<-sum(sv$weight[ids])
-  average<-colSums(x*sv$weight[ids]/psum)
-  x<-sweep(x,2,average)
-  # v<-svyrecvar(x*pweights/psum,design$cluster,design$strata, design$fpc,
-  #              postStrata=design$postStrata)
-
-  ret = list(result = average)
- if(var){
-   v<-survey::svyrecvar(x *sv$weight[ids]/psum,
-     data.frame(psu = sv$psu[ids]),
-     data.frame(strata = sv$strata[ids]),
-     list(popsize = NULL, sampsize = as.matrix(sv$sampsize[ids], ncol = 1)),
-     postStrata=NULL)
-
-   ret$v = v
- }
-
-
-  return(ret)
 }
 
 #' Prepare data for survey calculations
@@ -199,98 +149,6 @@ prep_survey_data <- function(var_type, ci_method, ids, use_df, na.rm, x, sv, st)
 
 }
 
-
-#' OUTDATED Calculate error statistics for survey means
-#' @param ret list. contains the results from calc_mean/total_...
-#' @param ci_method character. Type of ci (if any, to calculate)
-#' @param level numeric. 0 - 1, confidence level to return for ci
-#' @param df numeric. degrees of freedom
-#' @param var_type character. type of variability/variance to return
-#' @param lids numeric. Length of ids (e.g. number of rows of data to consider)
-#' @param st character. survey type
-#' @param x numeric (matrix). The data aggregated to create ret. This is used for some unweighted error calculations
-#' @noRd
-calculate_error <- function(ret, ci_method, level, df, var_type, lids, st, x){
-
-  stopifnot(length(ci_method)<= 1)
-
-  v = ret$v
-  ret$v = NULL
-
-  if (is.matrix(v)){
-    se <- sqrt(diag(v))
-  }else{
-    se <- sqrt(v)
-  }
-
-  if(any('se' %in% var_type)){
-    attributes(se) <- NULL
-    ret$se = se
-  }
-
-  if(any('ci' %in% var_type)){
-    #nicked from survey:::tconfint
-    if(ci_method == 'mean') ci = ret$result + se %o% stats::qt(c((1-level)/2, 1-(1-level)/2), df = df)
-    if(ci_method == 'unweighted_mean'){
-      if(nrow(x)>30){
-        ci = ret$result + se %o% stats::qt(c((1-level)/2, 1-(1-level)/2), df = nrow(x) - 1)
-      }else{
-        ci = ret$result + se %o% stats::qnorm(c((1-level)/2, 1-(1-level)/2))
-      }
-    }
-
-    if(ci_method == 'unweighted_binary'){
-
-      ci <- matrix(nrow = ncol(x), ncol = 2)
-      for(i in seq_len(ncol(x))){
-        ci[i,] <- stats::prop.test(x = sum(x[, i]), n = nrow(x), conf.level = level, correct = F)$conf.int
-      }
-    }
-
-
-    #nicked from survey::svyciprop
-    if(ci_method %in% c('beta', 'xlogit')){
-      m <- ret$result
-      attr(m, 'var') <- v
-
-      if(st %in% 'svyrepdt'){
-        class(m) <- "svrepstat"
-      } else{
-        class(m) <- 'svystat'
-      }
-      names(m) = 1
-
-      if(ci_method %in% 'xlogit'){
-        xform <- survey::svycontrast(m, quote(log(`1`/(1 - `1`))))
-        ci <- expit(as.vector(confint(xform, 1, level = level,
-                                      df = df)))
-      }
-
-      if(ci_method %in% 'beta'){
-        n.eff <- coef(m) * (1 - coef(m))/vcov(m)
-        rval <- coef(m)[1]
-        attr(rval, "var") <- vcov(m)
-        alpha <- 1 - level
-        # n.eff <- n.eff * (qt(alpha/2, nrow(design) - 1)/qt(alpha/2,
-        #                                                    degf(design)))^2
-        n.eff <- n.eff * (qt(alpha/2, lids - 1)/qt(alpha/2,
-                                                   df))^2
-        ci <- c(qbeta(alpha/2, n.eff * rval, n.eff * (1 - rval) +
-                        1), qbeta(1 - alpha/2, n.eff * rval + 1, n.eff *
-                                    (1 - rval)))
-      }
-    }
-
-    if(is.matrix(ci)){
-      ret$lower = ci[,1]
-      ret$upper = ci[,2]
-    }else{
-      ret$lower = ci[1]
-      ret$upper = ci[2]
-    }
-  }
-  return(ret)
-}
 
 #' Calculate the survey total
 #'
