@@ -33,20 +33,13 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
 
   #global bindings
   psu <- strata <- NULL
+  var_type = match.arg(var_type, c('none', 'se', 'ci'), TRUE)
+  ci_method = match.arg(ci_method, c('mean', 'beta', 'xlogit'))
 
   if(is.factor(x)) level_x = levels(x)
   wasfactor = is.factor(x)
   if(is.factor(x) && !ci_method %in% 'mean') stop(paste0('Invalid `ci_method` for factors: ', ci_method,'. Please use the "mean" option or "nonsurvey_binary"'))
 
-  ppp = prep_survey_data(var_type, ci_method, ids, use_df, na.rm, x, sv, st)
-  x <- ppp$x
-  var_type = ppp$var_type
-  df = ppp$df
-  ci_method = ppp$ci_method
-  lids = ppp$lids
-  sv = ppp$sv
-  st = ppp$st
-  ids = ppp$ids
 
   #get attributes for replicate surveys
   if(st == 'svyrepdt'){
@@ -95,60 +88,6 @@ smean.character <- function(x, ...){
   stop(paste("Don't know how to deal with objects of class: 'character'. Consider converting into a factor before running smean"))
 
 }
-
-#' Prepare data for survey calculations
-#' @param var_type character.
-#' @param ci_method character.
-#' @param ids vector.
-#' @param use_df logical.
-#' @param na.rm logical.
-#' @param x vector
-#' @param sv data.table
-#' @param st character.
-#'
-#' @details This function is merely a helper for \code{smean} and \code{stotal}.
-#' @noRd
-prep_survey_data <- function(var_type, ci_method, ids, use_df, na.rm, x, sv, st){
-  psu <- strata <- NULL #to make the no visible binding problem go away
-  var_type = match.arg(var_type, c('none', 'se', 'ci'), TRUE)
-  ci_method = match.arg(ci_method, c('mean', 'beta', 'xlogit'))
-
-  if(missing(ids)) stop('Please explicitly pass an id vector')
-
-  #don't need this because sv should remain sorted by id
-  #ids = which(sv[,`_id` %in% ids])
-
-  #get the df for later
-  #taken from survey:::degf.survey.design2
-  lids = length(ids)
-
-  if(!use_df || all(var_type %in% 'none')){
-    df = Inf
-  }else{
-    if(st %in% 'svydt'){
-      df = length(unique(sv[ids, psu])) -length(unique(sv[ids, strata]))
-    }else if(st %in% 'svyrepdt') {
-      df = qr(as.matrix(sv[ids, .SD, .SDcols=  grep('rep', names(sv))]), tol = 1e-05)$rank - 1
-    }
-  }
-
-
-  if(na.rm){
-    ids <- ids[!is.na(x)]
-    x <- x[!is.na(x)]
-  }
-
-  #construct a model matrix if needed
-  if(is.factor(x)){
-    x = model.matrix(~0+x, data = data.table::data.table(x = x))
-  }else{
-    x = matrix(x, ncol = 1)
-  }
-
-  return(list(var_type = var_type, x = x, ids = ids, ci_method =  ci_method, sv = sv, df = df, st = st, lids = lids))
-
-}
-
 
 #' Calculate the survey total
 #'

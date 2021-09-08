@@ -167,7 +167,7 @@ sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_meth
 
   ab_type <- match.arg(ab_type, c('agg', 'raw'))
   check_survey_bits(ids, sv, st)
-  lids = nrow(st) #This should always be the number of observations
+  lids = length(ids) #This should always be the number of observations
 
   if(ab_type == 'agg'){
     stopifnot('Expecting a matrix for b' = inherits(b, 'matrix'))
@@ -206,9 +206,9 @@ sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_meth
   if(ci_method == 'mean'){
     ci = ci_standard(res, se, level, df)
   }else if(ci_method == 'beta'){
-    ci = ci_beta(res, vcov, level, df, st)
+    ci = ci_beta(res, vcov, level, df, st, lids)
   }else if(ci_method == 'xlogit'){
-    ci = ci_beta(res, vcov, level, df, st)
+    ci = ci_xlogit(res, vcov, level, df, st)
   }
 
   if(!is.matrix(ci)){
@@ -245,8 +245,9 @@ ci_standard = function(x, se, level, df){
 #' @param level numeric. 0 - 1 reflecting the confidence level
 #' @param df numeric. degrees of freedom
 #' @param st character. Survey type, one of svyrepdt or svydt
+#' @param lids numeric. Number of rows the subset has
 #' @export
-ci_beta = function(x, vcov, level, df, st){
+ci_beta = function(x, vcov, level, df, st, lids){
   m <- x
   attr(m, 'var') <- vcov
   st = match.arg(st, c('svydt', 'svyrepdt'))

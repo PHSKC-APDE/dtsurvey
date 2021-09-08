@@ -112,7 +112,7 @@ expect_false(length(r18.1[, result]) ==  length(r18.2[,2]), info = 'dtsurvey ret
 expect_equal((r18.1[!is.na(byna),result, keyby = byna][, result]), r18.2[,2], info = 'dtsurvey returns a row when a by var is NA, survey does not')
 
 #multiby
-r19.1 = fake_sur[, smean(num, ids = `_id`), keyby = .(byvar, logi)] #todo, why does this return V1?
+r19.1 = fake_sur[, .(result = smean(num, ids = `_id`)), keyby = .(byvar, logi)] #todo, why does this return V1?
 r19.2 = svyby(~num, ~byvar + logi, og, svymean, na.rm = T)
 setorder(r19.1, logi, byvar)
 expect_equal(r19.1[, result], r19.2[, 'num'])

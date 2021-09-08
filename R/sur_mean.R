@@ -6,7 +6,6 @@
 #' @param sv data.table. Survey vars data.table
 #' @param ids numeric. vector of indices to operate on
 #' @param st character. survey type
-#'
 #' @rdname sur_mean
 #' @export
 #'
