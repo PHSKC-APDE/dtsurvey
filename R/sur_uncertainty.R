@@ -65,7 +65,11 @@ surdes_var <- function(x, type = 'mean', ids, sv){
 
 
   }else if(type == 'total'){
-    x = x/sv$weight[ids]
+    v<-survey::svyrecvar(x * sv$weight[ids],
+                         data.frame(psu = sv$psu[ids]),
+                         data.frame(strata = sv$strata[ids]),
+                         list(popsize = NULL, sampsize = as.matrix(sv$sampsize[ids], ncol = 1)),
+                         postStrata=NULL)
   }
 
   return(v)
