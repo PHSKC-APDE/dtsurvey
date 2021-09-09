@@ -84,6 +84,8 @@ surdes_var <- function(x, type = 'mean', ids, sv){
 repdes_var <- function(x, type = 'mean', ids, sv, svyrep_attributes){
 
   type <- match.arg(type, c('mean', 'total'))
+  cw = svyrep_attributes$combined.weights
+  selfrep = svyrep_attributes$selfrep
 
   if(!cw)
     pw<-sv[ids ,pweights]
@@ -106,7 +108,7 @@ repdes_var <- function(x, type = 'mean', ids, sv, svyrep_attributes){
 
     }
     replicate_results = drop(as.matrix(replicate_results))
-    if(NCOL(replicate_results)>1) repmeans <- t(replicate_results)
+    if(NCOL(replicate_results)>1) replicate_results <- t(replicate_results)
     #calculate the variance
     v <- survey::svrVar(replicate_results,
                         svyrep_attributes$scaledata$scale,
@@ -115,6 +117,9 @@ repdes_var <- function(x, type = 'mean', ids, sv, svyrep_attributes){
                         coef=result)
 
   }
+
+  if(!is.matrix(v)) v<- as.matrix(v)
+  attr(v, 'means') <- NULL
 
   v
 
@@ -174,7 +179,7 @@ sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_meth
   lids = length(ids) #This should always be the number of observations
 
   if(ab_type == 'agg'){
-    stopifnot('Expecting a matrix for b' = inherits(b, 'matrix'))
+    stopifnot('Expecting that b is a matrix' = inherits(b, 'matrix'))
     res <- a
     vcov <- b
   }
@@ -207,7 +212,7 @@ sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_meth
   se = sur_se(vcov, sv = sv, ids = ids, st = st)
 
 
-  if(ci_method == 'mean'){
+  if(ci_method %in% c('total', 'mean')){
     ci = ci_standard(res, se, level, df)
   }else if(ci_method == 'beta'){
     ci = ci_beta(res, vcov, level, df, st, lids)

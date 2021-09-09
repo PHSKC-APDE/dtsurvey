@@ -160,54 +160,11 @@ expect_equal(unique(r24.1[,upper]), unname(r24.3[,2]))
 r25 = as.dtsurvey(og)
 expect_equivalent(r25, dtsurvey(fake, psu = 'psu', strata = 'strata', weight = 'weight', nest = T))
 
-r26 = survey::svydesign(~1, strata = ~strata, data = fake, weights = ~weight)
+r26 = survey::svydesign(~1, strata = ~strata, data = fake, weights = ~weight, nest = T)
 expect_equivalent(as.dtsurvey(r26), dtsurvey(fake, psu = NULL, strata = 'strata', weight = 'weight', nest = T))
 
 #ci method errors
 expect_error(fake_sur[, smean(fact, ci_method = 'xlogit')])
-
-#return naming conventions
-fake_sur[, smean(fact)]
-fake_sur[, smean(logi)]
-fake_sur[, smean(num)]
-
-fake_sur[, smean(fact), by = byvar]
-fake_sur[, smean(fact, add_levels = TRUE), by = byvar]
-fake_sur[, c('r1') := smean(fact), by = byvar] #assignment with factors don't really work because multiple returns for a single by grouping
-fake_sur[, c('r2', 'l') := smean(fact, add_levels = TRUE), by = byvar]
-
-fake_sur[, smean(logi), by = byvar]
-fake_sur[, smean(num), by = byvar]
-
-fake_sur[, smean(fact, var_type = c('se', 'ci')), by = byvar]
-fake_sur[, smean(logi, var_type = c('se', 'ci')), by = byvar]
-fake_sur[, smean(num, var_type = c('se', 'ci')), by = byvar]
-
-fake_sur[, .(smean(logi), smean(num), t(smean(fact)))] #multiple computations without by can work, factors have to be transposed though
-fake_sur[, .(smean(logi), smean(num), smean(fact))]
-
-#can I make check for factors to return the transpose if in a ./list?
-fake_sur[, .(t(smean(fact)))]
-fake_sur[, (t(smean(fact)))] #looks the same as if it was in .() or list, but a matrix is returned instead of the expected vector
-fake_sur[, .(t(smean(fact, var_type = 'ci')))]
-fake_sur[, .(t(smean(fact, var_type = 'ci')), smean(num, var_type = 'ci'))] #transpose doesn't really work here. Also the smean(num) is being treated as three 3 rows
-
-#The transpose doesn't matter outside the .() or list() context
-fake_sur[, (t(smean(fact, var_type = 'ci')))]
-fake_sur[, ((smean(fact, var_type = 'ci')))]
-
-
-
-fake_sur[, .(smean(logi, var_type = c('se', 'ci')), smean(num, var_type = 'se'))] #where do all the extra columns go? They are long. Multiple computation is a bit tricky
-fake_sur[, .((smean(logi, var_type = c('se', 'ci'))))] #the . or list notation makes everything go long
-fake_sur[, .(t(smean(logi, var_type = c('se', 'ci'))))] #the transpose works, except with by
-fake_sur[, .((smean(logi, var_type = c('se', 'ci')))), by = 'byvar'] # data is long rather than wide, which is desired
-
-fs = fake_sur[, .((smean(logi, var_type = c('se', 'ci'))))] # why is this long?
-fs = fake_sur[, .(t(smean(logi, var_type = c('se', 'ci')))), by = 'byvar'] #it doesn't like this
-
-fake_sur[, .(t(smean(logi, var_type = c('se', 'ci'))))]
-fake_sur[, smean(logi, var_type = c('se', 'ci'))]
 
 
 

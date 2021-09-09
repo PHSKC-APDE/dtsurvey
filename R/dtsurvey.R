@@ -4,7 +4,7 @@
 #' @param psu character. Name of the variable(s) containing the psu information. NULL indicates no PSUs (e.g. each observation gets its own)
 #' @param strata character. Name of the variable(s) containing the strata information. Null indicates no strata (e.g. all obs belong to the same one)
 #' @param weight character. Name of the variables containing the pweight information. If NULL, then weights default to 1 (and what even is the point then)
-#' @param nest logical. If true, will renest PSUs within strata.
+#' @param nest logical. If true, will re-nest PSUs within strata.
 #'             If false, PSUs will be accepted as is and will throw an error when PSUs belong to multiple strata
 #'
 #' @importFrom data.table 'data.table' ":=" ".SD" ".GRP" ".I" "copy" ".N"
@@ -105,7 +105,8 @@ as.dtsurvey = function(sur){
   #parse the call
   call <- as.list(match.call(survey::svydesign, sur$call))
 
-  nest = ifelse(is.null(call$nest), formals(survey::svydesign)$nest, call$nest)
+  nest = as.character(ifelse(is.null(call$nest), formals(survey::svydesign)$nest, call$nest))
+  nest = as.logical(nest)
   psu = as.character(call$ids)[-1]
   strata = as.character(call$strata)[-1]
   weight = as.character(call$weights)[-1]

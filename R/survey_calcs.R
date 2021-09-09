@@ -143,7 +143,7 @@ stotal.default = function(x, na.rm = T, var_type = 'none', level = .95, use_df =
 
   #compute the variance/uncertainty if required
   if(!all(var_type %in% 'none')){
-    ret$v = sur_var(x, na.rm = na.rm, type = 'mean', as_list = FALSE,
+    ret$v = sur_var(x, na.rm = na.rm, type = 'total', as_list = FALSE,
                     svyrep_attributes = svyrep_attributes, sv = sv, ids = ids, st = st)
 
     if('se' %in% var_type){
@@ -153,7 +153,7 @@ stotal.default = function(x, na.rm = T, var_type = 'none', level = .95, use_df =
 
     if('ci' %in% var_type){
       retci = sur_ci(a = ret$result, b = ret$v, ab_type = 'agg', ci_part = 'both',
-                     ci_method = 'mean', level = level, use_df = use_df,
+                     ci_method = 'total', level = level, use_df = use_df,
                      sv = sv, ids = ids, st = st)
       ret$lower = retci[,1]
       ret$upper = retci[,2]

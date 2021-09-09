@@ -7,7 +7,7 @@
 surdes_var(x, type = "mean", ids, sv)
 }
 \arguments{
-\item{x}{vector of data}
+\item{x}{matrix of data}
 
 \item{type}{character. One of 'mean' or 'total' depending on the scale of statistic}
 

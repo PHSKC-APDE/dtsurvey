@@ -4,7 +4,7 @@
 \alias{ci_beta}
 \title{Refer to beta option of svyciprop}
 \usage{
-ci_beta(x, vcov, level, df, st)
+ci_beta(x, vcov, level, df, st, lids)
 }
 \arguments{
 \item{x}{numeric. THe mean/total result}
@@ -16,6 +16,8 @@ ci_beta(x, vcov, level, df, st)
 \item{df}{numeric. degrees of freedom}
 
 \item{st}{character. Survey type, one of svyrepdt or svydt}
+
+\item{lids}{numeric. Number of rows the subset has}
 }
 \description{
 Refer to beta option of svyciprop

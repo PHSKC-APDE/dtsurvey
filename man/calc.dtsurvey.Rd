@@ -2,10 +2,9 @@
 % Please edit documentation in R/calcdtsurvey.R
 \name{calc.dtsurvey}
 \alias{calc.dtsurvey}
-\title{Compute CHI type estimates from a dtsurvey object
- @export}
+\title{Compute CHI type estimates from a dtsurvey object}
 \usage{
-\method{calc}{dtsurvey}(
+calc.dtsurvey(
   ph.data,
   what,
   where,
@@ -21,6 +20,5 @@
 )
 }
 \description{
-Compute CHI type estimates from a dtsurvey object
- @export
+@export
 }
