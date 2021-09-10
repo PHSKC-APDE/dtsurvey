@@ -35,7 +35,8 @@ sur_var <- function(x, na.rm = T, type = 'mean', as_list = TRUE, svyrep_attribut
   }
 
   if(st %in% 'admin'){
-    r = var(x)
+    r = var(x)/length(ids) #I think the survey variance calcs do this scaling as part of their specific commands
+    #for example: https://github.com/cran/survey/blob/9addea4be893748c60974732b01ef7a393019217/R/multistage.R#L736
   }
 
   if(as_list) r = list(list(var = r))
@@ -167,7 +168,6 @@ sur_se = function(v, input_type = 'var', svyrep_attributes, sv, ids, st){
 #' @param level numeric. 0 - 1, confidence level to return for ci
 #' @param use_df logical
 #' @param ... additional arguments passed to the function specified by `b`
-
 #' @param sv data.table. Survey vars data.table
 #' @param ids numeric. vector of indices to operate on
 #' @param st character. survey type
@@ -201,6 +201,8 @@ sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_meth
       df = length(unique(sv[ids, psu])) -length(unique(sv[ids, strata]))
     }else if(st %in% 'svyrepdt') {
       df = qr(as.matrix(sv[ids, .SD, .SDcols=  grep('rep', names(sv))]), tol = 1e-05)$rank - 1
+    }else{
+      df = length(ids) - 1
     }
   }
 
@@ -213,7 +215,7 @@ sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_meth
 
 
   if(ci_method %in% c('total', 'mean')){
-    ci = ci_standard(res, se, level, df)
+    ci = ci_standard(res, se, level, df, survey = st %in% c('svydt', 'svyrepdt'))
   }else if(ci_method == 'beta'){
     ci = ci_beta(res, vcov, level, df, st, lids)
   }else if(ci_method == 'xlogit'){
@@ -242,9 +244,17 @@ sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_meth
 #' @param se numeric. The standard error
 #' @param level numeric. 0 - 1 reflecting the confidence level
 #' @param df numeric. degrees of freedom
+#' @param survey logical. Specifies whether the data comes from a survey.
 #' @export
-ci_standard = function(x, se, level, df){
-  ci = x + se %o% stats::qt(c((1-level)/2, 1-(1-level)/2), df = df)
+ci_standard = function(x, se, level, df, survey = T){
+
+  if(survey || df < 30){
+    ci = x + se %o% stats::qt(c((1-level)/2, 1-(1-level)/2), df = df)
+  } else{
+    ci = x + se %o% stats::qnorm(c((1-level)/2, 1-(1-level)/2))
+  }
+
+  ci
 }
 
 

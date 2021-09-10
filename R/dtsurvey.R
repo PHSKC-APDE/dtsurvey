@@ -40,7 +40,7 @@ dtsurvey = function(DT, psu = NULL, strata = NULL, weight = NULL, nest = TRUE){
 
 
   if(is.null(psu)){
-    sdes[, psu := 1L]
+    sdes[, psu := .I]
     psu = 'psu'
   }else if(length(psu>1)){
     sdes[, psu := .GRP, by = psu]

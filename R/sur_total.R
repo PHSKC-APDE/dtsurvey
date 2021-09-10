@@ -31,6 +31,11 @@ sur_total.default = function(x, na.rm = T, as_list = FALSE, sv, ids, st){
   if(st %in% 'svyrepdt'){
     r = (repdes_total(x, ids, sv))
   }
+
+  if(st %in% 'admin'){
+    r = admin_total(x)
+  }
+
   if(as_list) r = list(list(r)) #data.table unwraps a level
   return(r)
 
@@ -73,4 +78,9 @@ surdes_total <- function(x,ids, sv){
 #' calculate the total for a replicate survey
 repdes_total <- function(x, ids, sv){
   colSums(sv[ids, pweights] * x)
+}
+
+#' calculate admin total
+admin_total <- function(x){
+  colSums(x)
 }

@@ -31,6 +31,11 @@ sur_mean.default = function(x, na.rm = T, as_list = FALSE, sv, ids, st){
   if(st %in% 'svyrepdt'){
     r = (repdes_mean(x, ids, sv))
   }
+
+  if(st %in% 'admin'){
+    r = (admin_mean(x))
+  }
+
   if(as_list) r = list(list(r)) #data.table unwraps a level
   return(r)
 
@@ -73,4 +78,9 @@ surdes_mean <- function(x,ids, sv){
 #' calculate the mean for a replicate survey
 repdes_mean <- function(x, ids, sv){
   colSums(sv[ids, pweights] * x)/sum(sv[ids, pweights])
+}
+
+#' mean for a admin dataset
+admin_mean <- function(x){
+  colMeans(x)
 }

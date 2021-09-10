@@ -20,20 +20,21 @@ fake[, num_na := num]
 fake[sample(seq_len(size), 20), num_na := NA]
 setorder(fake, byvar)
 
-fake_sur = dtsurvey(fake, weight = 'weight')
-fake_sur2 = srvyr::as_survey(fake, weights = weight)
-fake_ad = dtadmin(fake)
+f= copy(fake)
+fs = dtsurvey(fake, weight = 'weight')
+fs2 = srvyr::as_survey(fake, weights = weight)
+fa = dtadmin(fake)
 #TODO fix this
 calcdt = dtsurvey:::calc.dtsurvey
 
-compare_ab = function(a, b, info_pre = ""){
+compare_ab = function(a, b, info_pre = "", chkme = unique(c(names(a), names(b)))){
   #make sure the names all match
   nma = sort(names(a))
   nmb = sort(names(b))
   nm = tinytest::expect_true(all(nma==nmb), info = paste(info_pre,'A and B names are all aligned'))
 
 
-  r = lapply(names(a), function(nnn){
+  r = lapply(names(chkme), function(nnn){
     setorderv(a, nnn)
     setorderv(b, nnn)
     expect_equal(a[[nnn]], b[[nnn]], info = paste(info_pre, 'a v b:', nnn))
@@ -46,19 +47,19 @@ compare_ab = function(a, b, info_pre = ""){
 
 
 #compare dtsurvey, calc.survey and calc.data.table with no windowing
-a1 = calcdt(fake_sur, 'num',  metrics = rads::metrics(),
+a1 = calcdt(fs, 'num',  metrics = rads::metrics(),
          per = 1, win = 1, time_var = 'ttt',
          proportion = F, fancy_time = T,
          ci = .95)
-b1 = rads::calc(fake_sur2, 'num', metrics = rads::metrics(),
+b1 = rads::calc(fs2, 'num', metrics = rads::metrics(),
                 per = 1, win = 1, time_var = 'ttt',
                 proportion = F, fancy_time = T,
                 ci = .95)
-c1 = rads::calc(fake, 'num', metrics = rads::metrics(),
+c1 = rads::calc(f, 'num', metrics = rads::metrics(),
                 per = 1, win = 1, time_var = 'ttt',
                 proportion = F, fancy_time = T,
                 ci = .95)
-d1 = calcdt(fake_ad, 'num',  metrics = rads::metrics(),
+d1 = calcdt(fa, 'num',  metrics = rads::metrics(),
                  per = 1, win = 1, time_var = 'ttt',
                  proportion = F, fancy_time = T,
                  ci = .95)
