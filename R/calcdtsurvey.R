@@ -318,11 +318,13 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
 
   #assemble factors
   if(any(c('mean', 'total') %in% metrics) && xisfactor){
-    if(!is.null(r1m)){
+    if(exists('r1m')){
       r1 = merge(r1[, mean:=NULL], r1m, by = 'id')
     }
     if(exists('r1t')){
-      r1 = merge(r1[, total:= NULL], r1t, by= c('id', 'level'))
+      byby = c('id', 'level')
+      byby = byby[c(T, 'level' %in% names(r1))]
+      r1 = merge(r1[, total:= NULL], r1t, by= byby)
     }
   }
   if(xisfactor){
