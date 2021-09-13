@@ -83,20 +83,30 @@ calc.dtsurvey = function(ph.data,
     sub_i = TRUE
   }
 
-  #Determine the type of CI method to use
-  meth = 'mean' #the default
-  st = attr(ph.data, 'stype')
-  whatfactor = is.factor(ph.data[[what]])
-  if(st == 'admin' && (whatfactor || proportion == T)) meth = 'unweighted_binary'
-  if(st != 'admin' && (whatfactor || proportion == T)) meth = 'xlogit'
 
-  #Compute the metric
-  res = lapply(wins, function(w){
-    compute(ph.data[sub_i, env = list(sub_i = sub_i)], what, by = by, metrics, ci_method = meth, level = ci,
-            time_var = time_var, time_format = time_format, per = per, window = !(is.logical(sub_i) && sub_i))
+  #if multiple whats are provided, compute per what
+  res = lapply(what, function(wht){
+    #Determine the type of CI method to use
+    meth = 'mean' #the default
+    st = attr(ph.data, 'stype')
+    whatfactor = is.factor(ph.data[[wht]])
+    if(st == 'admin' && (whatfactor || proportion == T)) meth = 'unweighted_binary'
+    if(st != 'admin' && (whatfactor || proportion == T)) meth = 'xlogit'
+
+    #Compute the metric
+    r = lapply(wins, function(w){
+      compute(ph.data[sub_i, env = list(sub_i = sub_i)], wht, by = by, metrics,
+              ci_method = meth, level = ci,
+              time_var = time_var, time_format = time_format,
+              per = per, window = !(is.logical(sub_i) && sub_i))
+    })
+
+    data.table::rbindlist(r)
+
   })
 
-  res = rbindlist(res)
+
+  res = rbindlist(res, fill = TRUE)
 
   return(res)
 
@@ -206,6 +216,13 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
     mis_fun = NULL
   }
 
+  if('obs' %in% metrics){
+    obs_fun = quote(.N)
+  }else{
+    obs_fun = NULL
+  }
+
+
   #missing.prop
   if('missing.prop' %in% metrics){
     misp_fun = data.table::substitute2(sum(is.na(x) / .N), list(x = x))
@@ -225,7 +242,7 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
     total = total_fun,
     numerator = num_fun,
     denominator = denom_fun,
-    obs = .N,
+    obs = obs_fun,
     missing = mis_fun,
     missing.prop = misp_fun,
     unique.time = ut_fun,
@@ -240,7 +257,8 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
          mis_fun = mis_fun,
          misp_fun = misp_fun,
          ut_fun = ut_fun,
-         ndis_fun = ndis_fun))
+         ndis_fun = ndis_fun,
+         obs_fun = obs_fun))
 
   #remove nulls
   the_call = as.list(the_call)
@@ -310,8 +328,8 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
   if(xisfactor){
     res = merge(r1,r2, by = c(by, 'level'), all.x = T)
     res[, id := NULL]
+    if(!'numerator' %in% metrics) res[, numerator := NULL]
   }
-
 
   #if asked for, compute rse and rate
   if('rse' %in% metrics){
