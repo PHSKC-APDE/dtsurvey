@@ -4,7 +4,7 @@
 \alias{calc.dtsurvey}
 \title{Compute CHI type estimates from a dtsurvey object}
 \usage{
-calc.dtsurvey(
+\method{calc}{dtsurvey}(
   ph.data,
   what,
   where,

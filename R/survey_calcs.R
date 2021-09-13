@@ -34,11 +34,11 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
   #global bindings
   psu <- strata <- NULL
   var_type = match.arg(var_type, c('none', 'se', 'ci'), TRUE)
-  ci_method = match.arg(ci_method, c('mean', 'beta', 'xlogit'))
+  ci_method = match.arg(ci_method, c('mean', 'beta', 'xlogit', 'unweighted_binary'))
 
   if(is.factor(x)) level_x = levels(x)
   wasfactor = is.factor(x)
-  if(is.factor(x) && !ci_method %in% 'mean') stop(paste0('Invalid `ci_method` for factors: ', ci_method,'. Please use the "mean" option or "nonsurvey_binary"'))
+  if(is.factor(x) && !ci_method %in% c('unweighted_binary', 'mean')) stop(paste0('Invalid `ci_method` for factors: ', ci_method,'. Please use the "mean" option or "unweighted_binary"'))
 
 
   #get attributes for replicate surveys
@@ -65,7 +65,7 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
 
     if('ci' %in% var_type){
       retci = sur_ci(a = ret$result, b = ret$v, ab_type = 'agg', ci_part = 'both',
-                      ci_method = ci_method, level = level, use_df = use_df,
+                      ci_method = ci_method, level = level, use_df = use_df, denom = length(prep_ids(x, ids, na.rm = na.rm)),
                       sv = sv, ids = ids, st = st)
       ret$lower = retci[,1]
       ret$upper = retci[,2]

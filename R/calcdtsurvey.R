@@ -83,9 +83,16 @@ calc.dtsurvey = function(ph.data,
     sub_i = TRUE
   }
 
+  #Determine the type of CI method to use
+  meth = 'mean' #the default
+  st = attr(ph.data, 'stype')
+  whatfactor = is.factor(ph.data[[what]])
+  if(st == 'admin' && (whatfactor || proportion == T)) meth = 'unweighted_binary'
+  if(st != 'admin' && (whatfactor || proportion == T)) meth = 'xlogit'
+
   #Compute the metric
   res = lapply(wins, function(w){
-    compute(ph.data[sub_i, env = list(sub_i = sub_i)], what, by = by, metrics, ci_method = 'mean', level = ci,
+    compute(ph.data[sub_i, env = list(sub_i = sub_i)], what, by = by, metrics, ci_method = meth, level = ci,
             time_var = time_var, time_format = time_format, per = per, window = !(is.logical(sub_i) && sub_i))
   })
 
@@ -130,14 +137,13 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
     total_fun = data.table::substitute2(list(stotal(x,
                                                     na.rm = T,
                                                     var_type = c('se', 'ci'),
-                                                    ci_method = cim,
+                                                    ci_method = 'total',
                                                     level = l,
                                                     ids = `_id`,
                                                     sv = sv,
                                                     st = st)),
                                         list(x = x,
-                                             l = level,
-                                             cim = I(ci_method)))
+                                             l = level))
   }else{
     total_fun = NULL
   }
@@ -271,7 +277,7 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
 
     if(xisfactor){
       r1m = r1[, unlist(mean, recursive = FALSE), id]
-      setnames(r1m, c('id', 'mean', 'mean_se', 'mean_lower', 'mean_upper', 'levels'))
+      setnames(r1m, c('id', 'mean', 'mean_se', 'mean_lower', 'mean_upper', 'level'))
 
     }else{
       r1m = NULL
@@ -283,7 +289,7 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
 
     if(xisfactor){
       r1t = r1[, unlist(total, recursive = FALSE), id]
-      setnames(r1t, c('id', 'total', 'total_se', 'total_lower', 'total_upper', 'levels'))
+      setnames(r1t, c('id', 'total', 'total_se', 'total_lower', 'total_upper', 'level'))
 
     }else{
       r1t = NULL
@@ -297,12 +303,12 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
     if(!is.null(r1m)){
       r1 = merge(r1[, mean:=NULL], r1m, by = 'id')
     }
-    if(!is.null(r1t)){
-      r1 = merge(r1[, total:= NULL], r1t, by= c('id', 'levels'))
+    if(exists('r1t')){
+      r1 = merge(r1[, total:= NULL], r1t, by= c('id', 'level'))
     }
   }
   if(xisfactor){
-    res = merge(r1,r2, by = c(by, 'levels'), all.x = T)
+    res = merge(r1,r2, by = c(by, 'level'), all.x = T)
     res[, id := NULL]
   }
 

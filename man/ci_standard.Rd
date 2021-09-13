@@ -4,7 +4,7 @@
 \alias{ci_standard}
 \title{What you'd get from survey mean}
 \usage{
-ci_standard(x, se, level, df)
+ci_standard(x, se, level, df, survey = T)
 }
 \arguments{
 \item{x}{numeric. THe mean/total result}
@@ -14,6 +14,8 @@ ci_standard(x, se, level, df)
 \item{level}{numeric. 0 - 1 reflecting the confidence level}
 
 \item{df}{numeric. degrees of freedom}
+
+\item{survey}{logical. Specifies whether the data comes from a survey.}
 }
 \description{
 What you'd get from survey mean

@@ -65,6 +65,7 @@ d1 = calcdt(fa, 'num',  metrics = rads::metrics(),
                  ci = .95)
 
 
+
 r1 = compare_ab(a1,b1, info_pre ='Basic dtsurvey vs. calc')
 table(unlist(r1))
 

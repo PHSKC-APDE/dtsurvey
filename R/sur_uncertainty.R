@@ -167,12 +167,13 @@ sur_se = function(v, input_type = 'var', svyrep_attributes, sv, ids, st){
 #' @param ci_method character. Name of the method by which the ci should be calculated. See details for more information.
 #' @param level numeric. 0 - 1, confidence level to return for ci
 #' @param use_df logical
+#' @param denom numeric. Only useful/used when ci_method == 'unweighted_binary'. Denominator (or N) for prop.test
 #' @param ... additional arguments passed to the function specified by `b`
 #' @param sv data.table. Survey vars data.table
 #' @param ids numeric. vector of indices to operate on
 #' @param st character. survey type
 #' @export
-sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_method = 'mean', level = .95, use_df = T, ..., sv, ids, st){
+sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_method = 'mean', level = .95, use_df = T, denom, ..., sv, ids, st){
 
   ab_type <- match.arg(ab_type, c('agg', 'raw'))
   check_survey_bits(ids, sv, st)
@@ -206,10 +207,6 @@ sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_meth
     }
   }
 
-  if(ci_method == 'unweighted_binary'){
-    stop('not implemented yet')
-  }
-
   #calculate the se
   se = sur_se(vcov, sv = sv, ids = ids, st = st)
 
@@ -220,6 +217,8 @@ sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_meth
     ci = ci_beta(res, vcov, level, df, st, lids)
   }else if(ci_method == 'xlogit'){
     ci = ci_xlogit(res, vcov, level, df, st)
+  }else if(ci_method == 'unweighted_binary'){
+    ci = ci_score(success = res * denom, denom, level = level)
   }
 
   if(!is.matrix(ci)){
@@ -317,3 +316,19 @@ ci_xlogit = function(x, vcov, level, df, st){
 
 }
 
+#' CI of a proportion via score method
+#' @param success numeric. Vector of counts
+#' @param N numeric. Single number of vector of N such that success/N = proportions
+#' @param level numeric [0-1]. Confidence level.
+ci_score = function(success, N = sum(success), level = .95){
+  stopifnot(length(N) == length(success) || length(N) == 1)
+
+  if(length(N) == 1) N = rep(N, length(success))
+
+  r = vapply(seq_along(success), function(x){
+      prop.test(success[x], N[x], conf.level = level, correct = FALSE)$conf.int
+    }, c(1,2))
+
+  return(t(r))
+
+}

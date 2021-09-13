@@ -12,6 +12,7 @@ sur_ci(
   ci_method = "mean",
   level = 0.95,
   use_df = T,
+  denom,
   ...,
   sv,
   ids,
@@ -32,6 +33,8 @@ sur_ci(
 \item{level}{numeric. 0 - 1, confidence level to return for ci}
 
 \item{use_df}{logical}
+
+\item{denom}{numeric. Only useful/used when ci_method == 'unweighted_binary'. Denominator (or N) for prop.test}
 
 \item{...}{additional arguments passed to the function specified by `b`}
 
