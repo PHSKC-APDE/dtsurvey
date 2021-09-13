@@ -128,7 +128,7 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
   xisfactor = is.factor(DT[,x,env = list(x=x)])
   #construct the query
   if('mean' %in% metrics){
-    mean_fun = data.table::substitute2(list(smean(x,
+    mean_fun = data.table::substitute2(list(dtsurvey::smean(x,
                                                   na.rm = T,
                                                   var_type = c('se', 'ci'),
                                                   ci_method = cim,
@@ -144,7 +144,7 @@ compute = function(DT, x, by = NULL, metrics, ci_method = 'mean', level = .95, t
   }
 
   if('total' %in% metrics){
-    total_fun = data.table::substitute2(list(stotal(x,
+    total_fun = data.table::substitute2(list(dtsurvey::stotal(x,
                                                     na.rm = T,
                                                     var_type = c('se', 'ci'),
                                                     ci_method = 'total',

@@ -14,7 +14,7 @@
     #check to see if survey functions should be swapped in or out
     st = attr(x, 'stype')
 
-    stopifnot(!is.null(st))
+    #if(is.null(st)) stop('dtsurvey `stype` attribute is NULL.')
 
     is_svy = st %in% c('svydt', 'svyrepdt')
 
