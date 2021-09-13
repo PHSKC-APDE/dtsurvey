@@ -69,6 +69,7 @@ sur_mean.character <- function(x, ...){
 }
 
 #' Calculate the mean from a normal survey
+#' @rdname sur_mean
 surdes_mean <- function(x,ids, sv){
   psum<-sum(sv$weight[ids])
   average<-colSums(x*sv$weight[ids]/psum)
@@ -76,11 +77,13 @@ surdes_mean <- function(x,ids, sv){
 }
 
 #' calculate the mean for a replicate survey
+#' @rdname sur_mean
 repdes_mean <- function(x, ids, sv){
   colSums(sv[ids, pweights] * x)/sum(sv[ids, pweights])
 }
 
 #' mean for a admin dataset
+#' @rdname sur_mean
 admin_mean <- function(x){
   colMeans(x)
 }

@@ -69,6 +69,7 @@ sur_total.character <- function(x, ...){
 }
 
 #' Calculate the total from a normal survey
+#' @rdname sur_total
 surdes_total <- function(x,ids, sv){
 
   colSums(x*sv$weight[ids])
@@ -76,11 +77,13 @@ surdes_total <- function(x,ids, sv){
 }
 
 #' calculate the total for a replicate survey
+#' @rdname sur_total
 repdes_total <- function(x, ids, sv){
   colSums(sv[ids, pweights] * x)
 }
 
 #' calculate admin total
+#' @rdname sur_total
 admin_total <- function(x){
   colSums(x)
 }

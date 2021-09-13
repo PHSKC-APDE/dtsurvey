@@ -5,6 +5,9 @@
 \alias{sur_total.default}
 \alias{sur_total.factor}
 \alias{sur_total.character}
+\alias{surdes_total}
+\alias{repdes_total}
+\alias{admin_total}
 \title{Calculate the survey weighted total of an object}
 \usage{
 sur_total(x, ...)
@@ -14,6 +17,12 @@ sur_total(x, ...)
 \method{sur_total}{factor}(x, na.rm = T, as_list = FALSE, sv, ids, st)
 
 \method{sur_total}{character}(x, ...)
+
+surdes_total(x, ids, sv)
+
+repdes_total(x, ids, sv)
+
+admin_total(x)
 }
 \arguments{
 \item{x}{vector. Variable to compute a total}
@@ -30,4 +39,10 @@ sur_total(x, ...)
 }
 \description{
 Calculate the survey weighted total of an object
+
+Calculate the total from a normal survey
+
+calculate the total for a replicate survey
+
+calculate admin total
 }

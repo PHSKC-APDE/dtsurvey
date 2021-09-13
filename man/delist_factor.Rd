@@ -6,6 +6,9 @@
 \usage{
 delist_factor(x)
 }
+\arguments{
+\item{a}{list (with a factor inside of it) to delist.}
+}
 \description{
 Unlist by a single level, used for survey factors results
 }

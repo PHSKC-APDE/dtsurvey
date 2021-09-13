@@ -5,6 +5,9 @@
 \alias{sur_mean.default}
 \alias{sur_mean.factor}
 \alias{sur_mean.character}
+\alias{surdes_mean}
+\alias{repdes_mean}
+\alias{admin_mean}
 \title{Calculate the survey weighted mean of an object}
 \usage{
 sur_mean(x, ...)
@@ -14,6 +17,12 @@ sur_mean(x, ...)
 \method{sur_mean}{factor}(x, na.rm = T, as_list = FALSE, sv, ids, st)
 
 \method{sur_mean}{character}(x, ...)
+
+surdes_mean(x, ids, sv)
+
+repdes_mean(x, ids, sv)
+
+admin_mean(x)
 }
 \arguments{
 \item{x}{vector. Variable to compute a mean}
@@ -30,4 +39,10 @@ sur_mean(x, ...)
 }
 \description{
 Calculate the survey weighted mean of an object
+
+Calculate the mean from a normal survey
+
+calculate the mean for a replicate survey
+
+mean for a admin dataset
 }
