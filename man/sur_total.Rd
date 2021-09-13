@@ -12,9 +12,9 @@
 \usage{
 sur_total(x, ...)
 
-\method{sur_total}{default}(x, na.rm = T, as_list = FALSE, sv, ids, st)
+\method{sur_total}{default}(x, na.rm = T, as_list = FALSE, sv, ids, st, ...)
 
-\method{sur_total}{factor}(x, na.rm = T, as_list = FALSE, sv, ids, st)
+\method{sur_total}{factor}(x, na.rm = T, as_list = FALSE, sv, ids, st, ...)
 
 \method{sur_total}{character}(x, ...)
 
@@ -26,6 +26,8 @@ admin_total(x)
 }
 \arguments{
 \item{x}{vector. Variable to compute a total}
+
+\item{...}{unused}
 
 \item{na.rm}{logical. Determines whether NA values will be omitted from the analysis}
 

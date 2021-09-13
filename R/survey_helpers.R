@@ -1,6 +1,6 @@
 
 calc_surdes_var <- function(x, ids, sv){
-  x <- sweep(x, 2, calc_surdes_mean(x = x, ids = ids, sv = sv)) #default function is "-"
+  x <- sweep(x, 2, surdes_mean(x = x, ids = ids, sv = sv)) #default function is "-"
 
   v<-survey::svyrecvar(x *sv$weight[ids]/sum(sv$weight[ids]),
                        data.frame(psu = sv$psu[ids]),

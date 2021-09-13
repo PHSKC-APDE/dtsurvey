@@ -13,7 +13,7 @@ dtrepsurvey <- function(svyrep, ...){
 #' @rdname dtrepsurvey
 #' @export
 dtrepsurvey.data.frame <- function(svyrep, ...){
-  dtrepsurvey(svrepdesign(svyrep, ...))
+  dtrepsurvey(survey::svrepdesign(svyrep, ...))
 }
 
 #' @rdname dtrepsurvey

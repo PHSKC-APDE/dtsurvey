@@ -6,6 +6,7 @@
 #' @param sv data.table. Survey vars data.table
 #' @param ids numeric. vector of indices to operate on
 #' @param st character. survey type
+#' @param ... unused
 #' @rdname sur_mean
 #' @export
 #'
@@ -15,7 +16,7 @@ sur_mean = function(x, ...){
 
 #' @rdname sur_mean
 #' @export
-sur_mean.default = function(x, na.rm = T, as_list = FALSE, sv, ids, st){
+sur_mean.default = function(x, na.rm = T, as_list = FALSE, sv, ids, st, ...){
   #Make sure the various inputs are accounted for
   check_survey_bits(ids, sv, st)
 
@@ -46,7 +47,7 @@ sur_mean.default = function(x, na.rm = T, as_list = FALSE, sv, ids, st){
 
 #' @rdname sur_mean
 #' @export
-sur_mean.factor = function(x, na.rm = T, as_list = FALSE , sv, ids, st){
+sur_mean.factor = function(x, na.rm = T, as_list = FALSE , sv, ids, st, ...){
   level_x = levels(x)
   r = sur_mean.default(x = x, na.rm = na.rm, as_list = as_list, sv = sv, ids = ids, st = st)
 

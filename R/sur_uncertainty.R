@@ -7,6 +7,7 @@
 #' @param sv data.table. Survey vars data.table
 #' @param ids numeric. vector of indices to operate on
 #' @param st character. survey type
+#' @importFrom stats var
 #' @export
 sur_var <- function(x, na.rm = T, type = 'mean', as_list = TRUE, svyrep_attributes, sv, ids, st){
 
@@ -130,6 +131,9 @@ repdes_var <- function(x, type = 'mean', ids, sv, svyrep_attributes){
 #' @param v either a vector of data or a vcov matrix
 #' @param input_type Character. One of 'var' or 'x'. Flags what v represents (x for vector of data) or var for an already computed vcov matrix (usually from sur_var)
 #' @param svyrep_attributes list. Containing arguments passed to \code{sur_var} when computing the variance from a replicate weight design
+#' @param sv data.table. Survey vars data.table
+#' @param ids numeric. vector of indices to operate on
+#' @param st character. survey type
 #' @export
 sur_se = function(v, input_type = 'var', svyrep_attributes, sv, ids, st){
 
@@ -320,6 +324,7 @@ ci_xlogit = function(x, vcov, level, df, st){
 #' @param success numeric. Vector of counts
 #' @param N numeric. Single number of vector of N such that success/N = proportions
 #' @param level numeric [0-1]. Confidence level.
+#' @importFrom stats prop.test
 ci_score = function(success, N = sum(success), level = .95){
   stopifnot(length(N) == length(success) || length(N) == 1)
 

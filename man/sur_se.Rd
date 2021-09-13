@@ -12,6 +12,12 @@ sur_se(v, input_type = "var", svyrep_attributes, sv, ids, st)
 \item{input_type}{Character. One of 'var' or 'x'. Flags what v represents (x for vector of data) or var for an already computed vcov matrix (usually from sur_var)}
 
 \item{svyrep_attributes}{list. Containing arguments passed to \code{sur_var} when computing the variance from a replicate weight design}
+
+\item{sv}{data.table. Survey vars data.table}
+
+\item{ids}{numeric. vector of indices to operate on}
+
+\item{st}{character. survey type}
 }
 \description{
 Calculate the standard error

@@ -12,9 +12,9 @@
 \usage{
 sur_mean(x, ...)
 
-\method{sur_mean}{default}(x, na.rm = T, as_list = FALSE, sv, ids, st)
+\method{sur_mean}{default}(x, na.rm = T, as_list = FALSE, sv, ids, st, ...)
 
-\method{sur_mean}{factor}(x, na.rm = T, as_list = FALSE, sv, ids, st)
+\method{sur_mean}{factor}(x, na.rm = T, as_list = FALSE, sv, ids, st, ...)
 
 \method{sur_mean}{character}(x, ...)
 
@@ -26,6 +26,8 @@ admin_mean(x)
 }
 \arguments{
 \item{x}{vector. Variable to compute a mean}
+
+\item{...}{unused}
 
 \item{na.rm}{logical. Determines whether NA values will be omitted from the analysis}
 
