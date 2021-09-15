@@ -164,7 +164,7 @@ r26 = survey::svydesign(~1, strata = ~strata, data = fake, weights = ~weight, ne
 expect_equivalent(as.dtsurvey(r26), dtsurvey(fake, psu = NULL, strata = 'strata', weight = 'weight', nest = T))
 
 #ci method errors
-expect_error(fake_sur[, smean(fact, ci_method = 'xlogit')])
+expect_error(fake_sur[, smean(fact, var_type = c('ci'), ci_method = 'xlogit')])
 
 
 

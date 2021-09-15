@@ -330,7 +330,12 @@ ci_score = function(success, N = sum(success), level = .95){
 
   if(length(N) == 1) N = rep(N, length(success))
 
+
+
   r = vapply(seq_along(success), function(x){
+
+    if(is.na(success[x]) || N[x] == 0 || is.na(N[x])) return(matrix(c(NA_real_, NA_real_)))
+
       prop.test(success[x], N[x], conf.level = level, correct = FALSE)$conf.int
     }, c(1,2))
 
