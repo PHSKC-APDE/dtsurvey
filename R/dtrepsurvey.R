@@ -45,6 +45,7 @@ dtrepsurvey.svyrep.design <- function(svyrep, ...){
 
   }else{
     sdes = data.table::data.table(svyrep$repweights)
+    setnames(sdes, names(sdes), paste0('V', seq_len(ncol(sdes))))
     sdes[, `_id` := .I]
   }
   data.table::setnames(sdes, paste0('V', seq_len(ncol(sdes)-1)), paste0('rep', seq_len(ncol(sdes)-1)))
