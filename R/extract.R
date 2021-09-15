@@ -13,19 +13,20 @@
   if(!missing(j)){
     #check to see if survey functions should be swapped in or out
     st = attr(x, 'stype')
+
+    #if(is.null(st)) stop('dtsurvey `stype` attribute is NULL.')
+
     is_svy = st %in% c('svydt', 'svyrepdt')
 
     jsub = substitute(j)
     #iterate all of the calls in j
     jsub = dtsurvey_j_calls(jsub, is_svy, xname = mc[['x']], st)
     mc[["j"]] <- jsub
-    mc[[1]] <- quote(data.table:::`[.data.table`)
-    res = eval.parent(mc)
-  }else{
-    NextMethod()
+
   }
 
-  #browser()
+  mc[[1]] <- quote(data.table:::`[.data.table`)
+  res = eval.parent(mc)
 
 
 }

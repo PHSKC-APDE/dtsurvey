@@ -19,7 +19,6 @@ smean(x, ...)
   ids,
   sv,
   st,
-  add_levels = FALSE,
   ...
 )
 
@@ -50,8 +49,6 @@ When the method is 'mean', the results should match \code{survey::svymean} while
 \item{sv}{data.table. Data.table of psu, strata, weight and the like to properly do survey statistics.}
 
 \item{st}{character. type of survey dataset being analyzed. Can be generally omitted and will be added to the call via `[.dtsurvey`}
-
-\item{add_levels}{logical. If TRUE, add a "levels" item to the return list (and forcing the return object to be a list even if var_type == 'none')}
 }
 \value{
 a vector or a list (the latter likely converted into a data.table) containing the results
@@ -60,7 +57,6 @@ a vector or a list (the latter likely converted into a data.table) containing th
 Calculate the survey mean
 }
 \details{
-If var_type is "none", a vector is returned. For factors, the names of the vector correspond to the levels, unless add_levels is TRUE.
-         In that case a list/data.table is returned with a column for the result and a column specifying the levels. When var_type is not "none" a named list is returned (and then likely converted into a data.table).
-         The list (which should be named) is ordered in the following manner (by slot): result, se, lower, upper, levels -- when requested.
+If var_type is "none", a vector is returned. For factors, the names of the vector correspond to the levels. When var_type is not "none" a named list is returned (and then likely converted into a data.table).
+         The list (which should be named) is ordered in the following manner (by slot): result, se, lower, upper, levels.
 }

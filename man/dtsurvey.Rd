@@ -15,7 +15,7 @@ dtsurvey(DT, psu = NULL, strata = NULL, weight = NULL, nest = TRUE)
 
 \item{weight}{character. Name of the variables containing the pweight information. If NULL, then weights default to 1 (and what even is the point then)}
 
-\item{nest}{logical. If true, will renest PSUs within strata.
+\item{nest}{logical. If true, will re-nest PSUs within strata.
 If false, PSUs will be accepted as is and will throw an error when PSUs belong to multiple strata}
 }
 \description{
