@@ -172,12 +172,11 @@ sur_se = function(v, input_type = 'var', svyrep_attributes, sv, ids, st){
 #' @param level numeric. 0 - 1, confidence level to return for ci
 #' @param use_df logical
 #' @param denom numeric. Only useful/used when ci_method == 'unweighted_binary'. Denominator (or N) for prop.test
-#' @param ... additional arguments passed to the function specified by `b`
 #' @param sv data.table. Survey vars data.table
 #' @param ids numeric. vector of indices to operate on
 #' @param st character. survey type
 #' @export
-sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_method = 'mean', level = .95, use_df = T, denom, ..., sv, ids, st){
+sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_method = 'mean', level = .95, use_df = T, denom, sv, ids, st){
 
   ab_type <- match.arg(ab_type, c('agg', 'raw'))
   check_survey_bits(ids, sv, st)
@@ -193,9 +192,9 @@ sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_meth
     if(b == 'sur_total') ttt = 'total'
     else ttt = 'mean'
 
-    b <- match.fun(match.arg(b, 'sur_total', 'sur_mean'))
-    vcov <- sur_var(a, ..., type = ttt, sv = sv, ids = ids, st = st)
-    res <- b(a, ..., sv = sv, ids = ids, st = st)
+    b <- match.fun(match.arg(b, c('sur_total', 'sur_mean')))
+    vcov <- sur_var(a, type = ttt, sv = sv, ids = ids, st = st, as_list = F)
+    res <- b(a, sv = sv, ids = ids, st = st)
   }
 
   #Degrees of freedom
