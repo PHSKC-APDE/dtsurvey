@@ -65,13 +65,12 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
     if('ci' %in% var_type){
 
       if(wasfactor && ci_method %in% c('beta', 'xlogit')){
-        ids = prep_ids(x, ids, na.rm)
-        xp = prep_x(x, na.rm)
+        xp = vapply(levels(x), function(y) as.numeric(x == y), rep(1, length(x)))
         retci = vapply(seq_len(ncol(xp)), function(xp_c){
-
           sur_ci(a = xp[, xp_c] , b = 'sur_mean', ab_type = 'raw',
                  ci_part = 'both', ci_method = ci_method, level = level, use_df = use_df,
                  denom = length(prep_ids(x, ids, na.rm = na.rm)),
+                 na.rm = na.rm,
                  sv = sv,
                  ids = ids, #this might be overkill
                  st = st)
@@ -84,6 +83,7 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
       }else{
         retci = sur_ci(a = ret$result, b = ret$v, ab_type = 'agg', ci_part = 'both',
                        ci_method = ci_method, level = level, use_df = use_df, denom = length(prep_ids(x, ids, na.rm = na.rm)),
+                       na.rm = na.rm,
                        sv = sv, ids = ids, st = st)
       }
 
@@ -173,7 +173,7 @@ stotal.default = function(x, na.rm = T, var_type = 'none', level = .95, use_df =
 
     if('ci' %in% var_type){
       retci = sur_ci(a = ret$result, b = ret$v, ab_type = 'agg', ci_part = 'both',
-                     ci_method = 'total', level = level, use_df = use_df,
+                     ci_method = 'total', level = level, use_df = use_df, na.rm = na.rm,
                      sv = sv, ids = ids, st = st)
       ret$lower = retci[,1]
       ret$upper = retci[,2]

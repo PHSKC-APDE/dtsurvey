@@ -11,6 +11,11 @@ apiclus1$apina[sample(1:nrow(apiclus1), 10)] <- NA
 apiclus1$stypena = apiclus1$stype
 apiclus1$stypena[sample(1:nrow(apiclus1), 10)] <- NA
 apiclus1$bothnum = as.numeric(apiclus1$both) - 1
+apiclus1$fact_na = factor(sample(c(NA,letters[1:5]), nrow(apiclus1), T))
+fnas = data.frame(vapply(levels(apiclus1$fact_na), function(x) as.numeric(apiclus1$fact_na == x), rep(1, nrow(apiclus1))))
+names(fnas) <- paste0('fct_na_', levels(apiclus1$fact_na))
+apiclus1 = cbind(apiclus1, fnas)
+
 dclus1<-svydesign(id=~dnum, weights=~pw, data=apiclus1, fpc=~fpc)
 og = as.svrepdesign(dclus1)
 herp = data.table(og$variables)
@@ -168,6 +173,30 @@ r25.3 <- dtrepsurvey(as.data.table(scd), type="BRR", repweights=repweights, comb
 expect_equal(r25.1, r25.2)
 expect_equal(r25.1,r25.3)
 
-#factors, se
+#factors as proportions
+#beta
+r26.1 = fake_sur[, smean(fact_na, var_type = c('ci'), ci_method = 'beta')]
+r26.1 = data.table(r26.1)
+r26.2 = lapply(levs, function(x){
+  r = svyciprop(as.formula(paste0('~','fct_na_',x, collapse = '')),og, 'beta', na.rm = T)
+  r= c(r, confint(r))
+  r = data.table(t(r))
+  setnames(r, c('result', 'lower', 'upper'))
+})
+r26.2 = rbindlist(r26.2)[, levels := as.character(levs)]
+setorder(r26.2, levels)
+expect_equivalent(r26.1, r26.2)
 
+#with NAs
+r29.1 = fake_sur[, smean(fact_na, var_type = c('ci'), ci_method = 'xlogit')]
+r29.1 = data.table(r29.1)
+r29.2 = lapply(levs, function(x){
+  r = svyciprop(as.formula(paste0('~','fct_na_',x, collapse = '')),og, 'xlogit', na.rm = T)
+  r= c(r, confint(r))
+  r = data.table(t(r))
+  setnames(r, c('result', 'lower', 'upper'))
+})
+r29.2 = rbindlist(r29.2)[, levels := as.character(levs)]
+setorder(r29.2, levels)
+expect_equivalent(r29.1, r29.2)
 
