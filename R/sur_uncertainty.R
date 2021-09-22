@@ -24,7 +24,7 @@ sur_var <- function(x, na.rm = T, type = 'mean', as_list = TRUE, svyrep_attribut
   }
 
   #prep x and ids (mostly removing NAs)
-  ids = prep_ids(x, ids, na.rm = na.rm)
+  ids = prep_ids(ids, sv)
   x = prep_x(x, na.rm = na.rm)
 
   if(st %in% 'svydt'){
