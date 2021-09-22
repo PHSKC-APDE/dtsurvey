@@ -21,7 +21,7 @@ sur_mean.default = function(x, na.rm = T, as_list = FALSE, sv, ids, st, ...){
   check_survey_bits(ids, sv, st)
 
   #prep x and ids (mostly removing NAs)
-  ids = prep_ids(ids, sv)
+  ids = prep_ids(x, ids, na.rm)
   x = prep_x(x, na.rm)
 
   if(st %in% 'svydt'){

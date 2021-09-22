@@ -16,12 +16,6 @@ fake = data.table(num = runif(size),
 fake[, psu := as.numeric(paste0(strata, sample(1:5, size, TRUE)))]
 fake[, num_na := num]
 fake[sample(seq_len(size), 20), num_na := NA]
-fake[, fact_na := fact]
-fake[sample(seq_len(size), 20), fact_na := NA]
-levs = unique(fake[, fact])
-fake[, paste0('fct_', levs) := lapply(levs, function(x) as.numeric(fact == x))]
-fake[, paste0('fct_na_', levs) := lapply(levs, function(x) as.numeric(fact_na == x))]
-
 setorder(fake, byvar)
 
 #make sure the survey package will take it
@@ -169,43 +163,8 @@ expect_equivalent(r25, dtsurvey(fake, psu = 'psu', strata = 'strata', weight = '
 r26 = survey::svydesign(~1, strata = ~strata, data = fake, weights = ~weight, nest = T)
 expect_equivalent(as.dtsurvey(r26), dtsurvey(fake, psu = NULL, strata = 'strata', weight = 'weight', nest = T))
 
-#Proportion methods for factors
-#x logit
-r27.1 = fake_sur[, smean(fact, var_type = c('ci'), ci_method = 'xlogit')]
-r27.1 = data.table(r27.1)
-r27.2 = lapply(levs, function(x){
-  r = svyciprop(as.formula(paste0('~','fct_',x, collapse = '')),og, 'xlogit')
-  r= c(r, confint(r))
-  r = data.table(t(r))
-  setnames(r, c('result', 'lower', 'upper'))
-})
-r27.2 = rbindlist(r27.2)[, levels := as.character(levs)]
-setorder(r27.2, levels)
-expect_equivalent(r27.1, r27.2)
+#ci method errors
+expect_error(fake_sur[, smean(fact, var_type = c('ci'), ci_method = 'xlogit')])
 
-#beta
-r28.1 = fake_sur[, smean(fact, var_type = c('ci'), ci_method = 'beta')]
-r28.1 = data.table(r28.1)
-r28.2 = lapply(levs, function(x){
-  r = svyciprop(as.formula(paste0('~','fct_',x, collapse = '')),og, 'beta')
-  r= c(r, confint(r))
-  r = data.table(t(r))
-  setnames(r, c('result', 'lower', 'upper'))
-})
-r28.2 = rbindlist(r28.2)[, levels := as.character(levs)]
-setorder(r28.2, levels)
-expect_equivalent(r28.1, r28.2)
 
-#with NAs
-r29.1 = fake_sur[, smean(fact_na, var_type = c('ci'), ci_method = 'xlogit')]
-r29.1 = data.table(r29.1)
-r29.2 = lapply(levs, function(x){
-  r = svyciprop(as.formula(paste0('~','fct_na_',x, collapse = '')),og, 'xlogit', na.rm = T)
-  r= c(r, confint(r))
-  r = data.table(t(r))
-  setnames(r, c('result', 'lower', 'upper'))
-})
-r29.2 = rbindlist(r29.2)[, levels := as.character(levs)]
-setorder(r29.2, levels)
-expect_equivalent(r29.1, r29.2)
 

@@ -25,9 +25,10 @@ prep_x <- function(x, na.rm = T){
   return(x)
 }
 
-prep_ids <- function(ids, sv){
-  #if(na.rm) ids <- ids[!is.na(x)]-- instead of removing NAs, this should remove where weights are 0 I think
-  return(ids[sv[ids,weight!=0]])
+prep_ids <- function(x, ids, na.rm = T){
+  if(na.rm) ids <- ids[!is.na(x)]
+
+  return(ids)
 }
 
 check_survey_bits <- function(ids, sv, st){
