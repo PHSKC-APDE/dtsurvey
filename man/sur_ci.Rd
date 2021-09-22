@@ -13,7 +13,7 @@ sur_ci(
   level = 0.95,
   use_df = T,
   denom,
-  ...,
+  na.rm = T,
   sv,
   ids,
   st
@@ -36,7 +36,7 @@ sur_ci(
 
 \item{denom}{numeric. Only useful/used when ci_method == 'unweighted_binary'. Denominator (or N) for prop.test}
 
-\item{...}{additional arguments passed to the function specified by `b`}
+\item{na.rm}{logical. Passed to `b` when `ab_type` = 'raw'}
 
 \item{sv}{data.table. Survey vars data.table}
 

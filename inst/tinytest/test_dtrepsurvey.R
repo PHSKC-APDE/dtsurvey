@@ -175,8 +175,9 @@ expect_equal(r25.1,r25.3)
 
 #factors as proportions
 #beta
-r26.1 = fake_sur[, smean(fact_na, var_type = c('ci'), ci_method = 'beta')]
+r26.1 = dt[, smean(fact_na, var_type = c('ci'), ci_method = 'beta')]
 r26.1 = data.table(r26.1)
+levs = dt[, levels(fact_na)]
 r26.2 = lapply(levs, function(x){
   r = svyciprop(as.formula(paste0('~','fct_na_',x, collapse = '')),og, 'beta', na.rm = T)
   r= c(r, confint(r))
@@ -188,15 +189,15 @@ setorder(r26.2, levels)
 expect_equivalent(r26.1, r26.2)
 
 #with NAs
-r29.1 = fake_sur[, smean(fact_na, var_type = c('ci'), ci_method = 'xlogit')]
-r29.1 = data.table(r29.1)
-r29.2 = lapply(levs, function(x){
+r27.1 = dt[, smean(fact_na, var_type = c('ci'), ci_method = 'xlogit')]
+r27.1 = data.table(r27.1)
+r27.2 = lapply(levs, function(x){
   r = svyciprop(as.formula(paste0('~','fct_na_',x, collapse = '')),og, 'xlogit', na.rm = T)
   r= c(r, confint(r))
   r = data.table(t(r))
   setnames(r, c('result', 'lower', 'upper'))
 })
-r29.2 = rbindlist(r29.2)[, levels := as.character(levs)]
-setorder(r29.2, levels)
-expect_equivalent(r29.1, r29.2)
+r27.2 = rbindlist(r27.2)[, levels := as.character(levs)]
+setorder(r27.2, levels)
+expect_equivalent(r27.1, r27.2)
 
