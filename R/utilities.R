@@ -11,5 +11,3 @@ delist_factor = function(x){
   stopifnot(inherits(x, 'list'))
   unlist(x, recursive = FALSE)
 }
-
-
