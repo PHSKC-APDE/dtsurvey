@@ -28,6 +28,8 @@
   mc[[1]] <- quote(data.table:::`[.data.table`)
   res = eval.parent(mc)
 
+  return(res)
+
 
 }
 
