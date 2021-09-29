@@ -13,5 +13,5 @@ LazyData: true
 Suggests: tinytest
 RoxygenNote: 7.1.1
 Imports: 
-    data.table (>= 1.14.1),
+    data.table (>= 1.14.3),
     survey(>= 4.0)
