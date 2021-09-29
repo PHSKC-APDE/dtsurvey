@@ -1,0 +1,141 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# dtsurvey
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+dtsurvey is a partial implementation of `survey` package routines so that `data.table` syntax can be used. Basic aggregations like means and totals are implemented for both classic complex survey designs and replicate designs. Fancier things like regressions, finite population corrections (FPCs) and what not are not implemented.
+
+## Installation
+
+From [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("dcaseykc/dtsurvey")
+```
+## Example
+
+Before survey calculations can be computed, a dataset must be declared as a type of `dtsurvey` object:
+
+```{r example}
+library(dtsurvey)
+library('survey', quietly = TRUE) # to get access to the datasets
+data(api)
+
+#survey vs. dtsurvey style, complex surveys
+dclus1<-svydesign(id=~dnum, weights=~pw, data=apiclus1)
+dtclus1 <- dtsurvey(apiclus1, 'dnum', weight = 'pw')
+
+#dtsurvey loosely wraps survey::svrepdesign for replicate designs
+# You can either pass the arguments for svrepdesign through ..., or pass
+# an existing svrepdesign
+drep = as.svrepdesign(dclus1)
+dtrep1 = dtrepsurvey(drep)
+
+#To get access to dtsurvey routines, but with non survey data, use `dtadmin`
+dtad = dtadmin(apiclus1)
+
+```
+
+Compute means/proportions with `smean` within a `[`
+
+```{r means}
+
+##means
+#Standard complex survey
+dtclus1[, smean(api00), by = stype] #grouping commands are easy
+dtclus1[stype == 'E', smean(api00), by = both] #so is subsetting!
+dtclus1[, smean(api00, var_type = c('se', 'ci'))] #adding error metrics
+
+#Replicate survey
+dtrep1[, smean(api00), by = stype] #grouping commands are easy
+dtrep1[stype == 'E', smean(api00), by = both] #so is subsetting!
+dtrep1[, smean(api00, var_type = c('se', 'ci'))] #adding error metrics
+
+#Normal dataset. smean should be equal to `mean`
+dtad[, smean(api00), by = stype] #grouping commands are easy
+dtad[stype == 'E', smean(api00), by = both] #so is subsetting!
+dtad[, smean(api00, var_type = c('se', 'ci'))] #adding error metrics
+
+
+```
+
+Basic column assignment is still possible after an object is case as a dtsurvey/dtrepsurvey/dtadmin. While it is possible to assign the results of `smean` (and `stotal`) using the `:=` approach, that should be used sparingly. Factors and instances where `var_type != NULL` return weird objects. Worth testing out before going too crazy.
+
+```{r assign}
+dtclus1[, count := 1] # to estimate the total number of schools
+dtrep1[, count := 1]
+
+```
+
+Compute totals with `stotal`
+
+```{r totals}
+
+dtclus1[, stotal(count), by = stype]
+dtrep1[, stotal(count), by = stype]
+
+```
+
+Factors work within `smean` and `stotal`, but can be weird:
+```{r factors}
+class(dtclus1[, awards])
+
+#How to identify which value belongs to what
+dtclus1[, smean(awards)] #returns a named vector
+
+a = dtclus1[, smean(awards),stype] #also returns a named vector, but stripped
+a
+names(a[, V1]) #ruhroh
+
+#however, with some clever ordering, you should be able to recover the levels
+dtclus1[, fff := factor(sample(c('A', 'B'), nrow(dtclus1), replace = T))]
+dtclus1[stype == 'E', fff := 'A']
+dtclus1[, .(smean(fff), levels(fff)), stype]
+
+#NAs in the factor seem to work alright
+dtclus1[stype == 'M' & fff == 'A', fff := NA]
+dtclus1[, .(smean(fff), levels(fff)), stype]
+
+
+#factors with ses and cis
+#because multiple columns are being returned, a "levels" column comes along
+# for the ride
+dtclus1[, smean(fff, var_type = c('se', 'ci')), stype]
+
+```
+
+When a CI is needed for proportions, additional methods of for calculating CIs are available
+
+```{r props}
+
+#default borrowed from survey package (and general statistics)
+dtclus1[, smean(awards, var_type = 'ci', ci_method = 'mean')]
+
+#See survey::svyciprop for more info about how these work
+dtclus1[, smean(awards, var_type = 'ci', ci_method = 'xlogit')] #xlogit
+dtclus1[, smean(awards, var_type = 'ci', ci_method = 'beta')] #beta
+
+#dtadmin have their own method
+dtad[, smean(awards, var_type = 'ci', ci_method = 'unweighted_binary'), stype]
+
+#vary the level
+dtclus1[, smean(awards, var_type = 'ci', ci_method = 'xlogit', level = .9)]
+dtclus1[, smean(awards, var_type = 'ci', ci_method = 'xlogit', level = .99)]
+
+```
