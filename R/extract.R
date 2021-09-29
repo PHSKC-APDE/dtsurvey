@@ -16,11 +16,12 @@
 
     #if(is.null(st)) stop('dtsurvey `stype` attribute is NULL.')
 
-    is_svy = st %in% c('svydt', 'svyrepdt')
+    #This should be uneeded since the `[` method should cover it
+    #is_svy = st %in% c('svydt', 'svyrepdt')
 
     jsub = substitute(j)
     #iterate all of the calls in j
-    jsub = dtsurvey_j_calls(jsub, is_svy, xname = mc[['x']], st)
+    jsub = dtsurvey_j_calls(jsub, T, xname = mc[['x']], st)
     mc[["j"]] <- jsub
 
   }
