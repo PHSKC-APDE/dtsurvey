@@ -21,6 +21,11 @@ fake[sample(seq_len(size), 20), fact_na := NA]
 levs = unique(fake[, fact])
 fake[, paste0('fct_', levs) := lapply(levs, function(x) as.numeric(fact == x))]
 fake[, paste0('fct_na_', levs) := lapply(levs, function(x) as.numeric(fact_na == x))]
+fake[, bin := sample(0:1, size, T)]
+fake[bin == 0, bin := NA]
+fake[, bin_by := bin]
+fake[, bin_fact := as.factor(bin)]
+fake[!is.na(bin), bin2 := sample(0:1, .N, T)]
 setorder(fake, byvar)
 
 #make sure the survey package will take it
@@ -208,4 +213,14 @@ r29.2 = lapply(levs, function(x){
 r29.2 = rbindlist(r29.2)[, levels := as.character(levs)]
 setorder(r29.2, levels)
 expect_equivalent(r29.1, r29.2)
+
+#more NA stuff
+r30.1 = fake_sur[, mean(bin, na.rm = T), bin_by]
+r30.2 = fake_sur[, smean(bin), bin_by]
+expect_equivalent(r30.1, r30.2)
+
+
+r31.1 = fake_sur[, sum(bin, na.rm = T), bin_by]
+r31.2 = fake_sur[, stotal(bin), bin_by]
+expect_equivalent(r31.1, r31.2)
 
