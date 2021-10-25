@@ -217,6 +217,8 @@ expect_equivalent(r29.1, r29.2)
 #more NA stuff
 r30.1 = fake_sur[, mean(bin, na.rm = T), bin_by]
 r30.2 = fake_sur[, smean(bin), bin_by]
+r30.3 = svyby(~bin, ~bin_by, og, svymean) #NAs in by are ignored in survey
+r30.4 = svymean(~bin, subset(og, is.na(bin_by)), na.rm = T)
 expect_equivalent(r30.1, r30.2)
 
 
