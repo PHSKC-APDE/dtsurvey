@@ -18,7 +18,7 @@ From [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("dcaseykc/dtsurvey")
+devtools::install_github("PHSKC-APDE/dtsurvey")
 ```
 
 ## Example
@@ -150,8 +150,8 @@ dtclus1[, .(smean(fff), levels(fff)), stype]
 #> 2:     H 0.4285714  B
 #> 3:     E 1.0000000  A
 #> 4:     E 0.0000000  B
-#> 5:     M 0.4800000  A
-#> 6:     M 0.5200000  B
+#> 5:     M 0.4000000  A
+#> 6:     M 0.6000000  B
 #NAs in the factor seem to work alright
 dtclus1[stype == 'M' & fff == 'A', fff := NA]
 dtclus1[, .(smean(fff), levels(fff)), stype]
@@ -166,13 +166,13 @@ dtclus1[, .(smean(fff), levels(fff)), stype]
 #because multiple columns are being returned, a "levels" column comes along
 # for the ride
 dtclus1[, smean(fff, var_type = c('se', 'ci')), stype]
-#>    stype    result         se     lower     upper levels
-#> 1:     H 0.5714286 0.08709836 0.3654737 0.7773835      A
-#> 2:     H 0.4285714 0.08709836 0.2226165 0.6345263      B
-#> 3:     E 1.0000000 0.00000000 1.0000000 1.0000000      A
-#> 4:     E 0.0000000 0.00000000 0.0000000 0.0000000      B
-#> 5:     M 0.0000000 0.00000000 0.0000000 0.0000000      A
-#> 6:     M 1.0000000 0.00000000 1.0000000 1.0000000      B
+#>    stype    result        se     lower     upper levels
+#> 1:     H 0.5714286 0.1302199 0.2635075 0.8793497      A
+#> 2:     H 0.4285714 0.1302199 0.1206503 0.7364925      B
+#> 3:     E 1.0000000 0.0000000 1.0000000 1.0000000      A
+#> 4:     E 0.0000000 0.0000000 0.0000000 0.0000000      B
+#> 5:     M 0.0000000 0.0000000 0.0000000 0.0000000      A
+#> 6:     M 1.0000000 0.0000000 1.0000000 1.0000000      B
 ```
 
 When a CI is needed for proportions, additional methods of for
