@@ -48,7 +48,15 @@ sur_mean.default = function(x, na.rm = T, as_list = FALSE, sv, ids, st, ...){
 #' @rdname sur_mean
 #' @export
 sur_mean.factor = function(x, na.rm = T, as_list = FALSE , sv, ids, st, ...){
-  level_x = levels(x)
+
+  if(all(is.na(x))){
+    level_x = NA_character_
+
+  }else{
+    level_x = levels(x)
+  }
+
+
   r = sur_mean.default(x = x, na.rm = na.rm, as_list = as_list, sv = sv, ids = ids, st = st)
 
 
@@ -72,6 +80,9 @@ sur_mean.character <- function(x, ...){
 #' Calculate the mean from a normal survey
 #' @rdname sur_mean
 surdes_mean <- function(x,ids, sv){
+
+  if(NROW(x) == 0) return(NaN)
+
   psum<-sum(sv$weight[ids])
   average<-colSums(x*sv$weight[ids]/psum)
   return(average)
@@ -80,6 +91,7 @@ surdes_mean <- function(x,ids, sv){
 #' calculate the mean for a replicate survey
 #' @rdname sur_mean
 repdes_mean <- function(x, ids, sv){
+  if(NROW(x) == 0) return(NaN)
   colSums(sv[ids, pweights] * x)/sum(sv[ids, pweights])
 }
 

@@ -60,12 +60,17 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
     if('se' %in% var_type){
       ret$se = sur_se(ret$v, input_type = 'var', svyrep_attributes = svyrep_attributes,
                       sv = sv, ids = ids, st = st)
+
+      if(length(ret$se)==0) ret$se = NA_real_
     }
 
     if('ci' %in% var_type){
 
       if(wasfactor && ci_method %in% c('beta', 'xlogit')){
         xp = vapply(levels(x), function(y) as.numeric(x == y), rep(1, length(x)))
+
+        if(!is.matrix(xp)) xp <- matrix(xp, ncol = length(levels(x)))
+
         retci = vapply(seq_len(ncol(xp)), function(xp_c){
           sur_ci(a = xp[, xp_c] , b = 'sur_mean', ab_type = 'raw',
                  ci_part = 'both', ci_method = ci_method, level = level, use_df = use_df,
