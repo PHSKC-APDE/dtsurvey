@@ -111,12 +111,23 @@ repdes_var <- function(x, type = 'mean', ids, sv, svyrep_attributes){
     }
     replicate_results = drop(as.matrix(replicate_results))
     if(NCOL(replicate_results)>1) replicate_results <- t(replicate_results)
+
     #calculate the variance
-    v <- survey::svrVar(replicate_results,
-                        svyrep_attributes$scaledata$scale,
-                        svyrep_attributes$scaledata$rscales,
-                        mse = svyrep_attributes$mse,
-                        coef=result)
+    #If all the data is NA, no need to warn about that
+    if(NCOL(replicate_results) == 0){
+      v <- suppressWarnings(survey::svrVar(replicate_results,
+                          svyrep_attributes$scaledata$scale,
+                          svyrep_attributes$scaledata$rscales,
+                          mse = svyrep_attributes$mse,
+                          coef=result))
+    }else{
+      v <- survey::svrVar(replicate_results,
+                          svyrep_attributes$scaledata$scale,
+                          svyrep_attributes$scaledata$rscales,
+                          mse = svyrep_attributes$mse,
+                          coef=result)
+    }
+
 
   }
 
@@ -198,32 +209,38 @@ sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_meth
     res <- b(a, na.rm = na.rm, sv = sv, ids = ids, st = st)
   }
 
-  #Degrees of freedom
-  if(!use_df){
-    df = Inf
+  if(all(is.na(res))){
+    ci = matrix(c(NA, NA), nrow = 1)
   }else{
-    if(st %in% 'svydt'){
-      idx = ids[sv[ids, weight != 0]]
-      df = length(unique(sv[idx, psu])) -length(unique(sv[idx, strata]))
-    }else if(st %in% 'svyrepdt') {
-      df = qr(as.matrix(sv[ids, .SD, .SDcols=  grep('rep', names(sv))]), tol = 1e-05)$rank - 1
+
+
+    #Degrees of freedom
+    if(!use_df){
+      df = Inf
     }else{
-      df = length(ids) - 1
+      if(st %in% 'svydt'){
+        idx = ids[sv[ids, weight != 0]]
+        df = length(unique(sv[idx, psu])) -length(unique(sv[idx, strata]))
+      }else if(st %in% 'svyrepdt') {
+        df = qr(as.matrix(sv[ids, .SD, .SDcols=  grep('rep', names(sv))]), tol = 1e-05)$rank - 1
+      }else{
+        df = length(ids) - 1
+      }
     }
-  }
 
-  #calculate the se
-  se = sur_se(vcov, sv = sv, ids = ids, st = st)
+    #calculate the se
+    se = sur_se(vcov, sv = sv, ids = ids, st = st)
 
 
-  if(ci_method %in% c('total', 'mean')){
-    ci = ci_standard(res, se, level, df, survey = st %in% c('svydt', 'svyrepdt'))
-  }else if(ci_method == 'beta'){
-    ci = ci_beta(res, vcov, level, df, st, lids)
-  }else if(ci_method == 'xlogit'){
-    ci = ci_xlogit(res, vcov, level, df, st)
-  }else if(ci_method == 'unweighted_binary'){
-    ci = ci_score(success = res * denom, denom, level = level)
+    if(ci_method %in% c('total', 'mean')){
+      ci = ci_standard(res, se, level, df, survey = st %in% c('svydt', 'svyrepdt'))
+    }else if(ci_method == 'beta'){
+      ci = ci_beta(res, vcov, level, df, st, lids)
+    }else if(ci_method == 'xlogit'){
+      ci = ci_xlogit(res, vcov, level, df, st)
+    }else if(ci_method == 'unweighted_binary'){
+      ci = ci_score(success = res * denom, denom, level = level)
+    }
   }
 
   if(!is.matrix(ci)){

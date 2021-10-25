@@ -26,7 +26,7 @@ From [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("dcaseykc/dtsurvey")
+devtools::install_github("PHSKC-APDE/dtsurvey")
 ```
 ## Example
 

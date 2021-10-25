@@ -72,7 +72,7 @@ sur_total.character <- function(x, ...){
 #' Calculate the total from a normal survey
 #' @rdname sur_total
 surdes_total <- function(x,ids, sv){
-
+  #if(identical(x, matrix(integer(0), nrow = 0, ncol = 1))) return(NaN)
   colSums(x*sv$weight[ids])
 
 }
@@ -80,6 +80,7 @@ surdes_total <- function(x,ids, sv){
 #' calculate the total for a replicate survey
 #' @rdname sur_total
 repdes_total <- function(x, ids, sv){
+  #if(identical(x, matrix(integer(0), nrow = 0, ncol = 1))) return(NaN)
   colSums(sv[ids, pweights] * x)
 }
 
