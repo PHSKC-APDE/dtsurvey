@@ -16,7 +16,7 @@
     Nargs = nargs() - (!missing(drop))
     if (Nargs<3L) {
       ans = `[.data.frame`(x,i) # drop ignored anyway by DF[i]
-      #if(!names(ans) %in% '_id') ans$`_id` <- x$`_id`
+      # if(!names(ans) %in% '_id') ans$`_id` <- x$`_id` -- won't work for select. Will probably have to override select
     } else if (missing(drop)){
       ans = `[.data.frame`(x,i,j)
       #if(!names(ans) %in% '_id') ans$`_id` = `[.data.frame`(x,i,'_id')
