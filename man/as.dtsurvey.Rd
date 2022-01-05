@@ -9,7 +9,7 @@ as.dtsurvey(sur)
 \arguments{
 \item{sur}{svydesign object
 This function converts a survey.design2 object into a dtsurvey object.
-Finite population corrections (fpcs) are not implemented in dtsurvey yet and therefore will also through an error here.}
+Finite population corrections (fpcs) are not implemented in dtsurvey yet}
 }
 \description{
 Convert a survey::svydesign object into a dtsurvey
