@@ -166,7 +166,7 @@ setorder(r24.1, fact, byvar)
 expect_equal(unique(r24.1[,lower]), unname(r24.3[,1]))
 expect_equal(unique(r24.1[,upper]), unname(r24.3[,2]))
 
-#converting a survey object into a dtsurvey
+#converting a survey object into a dtsurvey (see more below)
 r25 = as.dtsurvey(og)
 expect_equivalent(r25, dtsurvey(fake, psu = 'psu', strata = 'strata', weight = 'weight', nest = T))
 
@@ -225,4 +225,20 @@ expect_equivalent(r30.1, r30.2)
 r31.1 = fake_sur[, sum(bin, na.rm = T), bin_by]
 r31.2 = fake_sur[, stotal(bin), bin_by]
 expect_equivalent(r31.1, r31.2)
+
+#converting surveys when the dataset has been prefiltered
+og_sub = subset(og, logi == T)
+og_dt1 = dtsurvey(og_sub$variables, psu = 'psu', strata = 'strata', weight = 'weight', nest = T)
+og_dt = as.dtsurvey(og_sub)
+r32.1 = svymean(~num, og_sub)
+r32.1 = data.table(result = r32.1, se = SE(r32.1))
+r32.2 =og_dt[, smean(num, var_type = 'se')]
+expect_equivalent(r32.1, r32.2)
+
+#does sort order effect things
+fs1 = copy(fake_sur)
+fs2 = copy(fake_sur)
+fs2 = fs2[sample(1:nrow(fs2), nrow(fs2), replace = F)]
+
+expect_equivalent(fs1[, smean(num), keyby = fact], fs2[, smean(num), keyby = fact])
 

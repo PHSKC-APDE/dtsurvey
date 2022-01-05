@@ -96,31 +96,31 @@ dtsurvey = function(DT, psu = NULL, strata = NULL, weight = NULL, nest = TRUE){
 #' Convert a survey::svydesign object into a dtsurvey
 #' @param sur svydesign object
 #' This function converts a survey.design2 object into a dtsurvey object.
-#' Finite population corrections (fpcs) are not implemented in dtsurvey yet and therefore will also through an error here.
+#' Finite population corrections (fpcs) are not implemented in dtsurvey yet
 #' @export
 as.dtsurvey = function(sur){
 
   stopifnot('Must by a survey.design2 object' = inherits(sur, "survey.design2"))
 
-  #parse the call
-  call <- as.list(match.call(survey::svydesign, sur$call))
+  #construct sdes
+  if(NCOL(sur$cluster)>1) stop('dtsurvey does not know how to handle surveys with more than one psu variable')
+  if(NCOL(sur$strata)>1) stop('dtsurvey does not know how to handle surveys with more than one strata variable')
 
-  nest = as.character(ifelse(is.null(call$nest), formals(survey::svydesign)$nest, call$nest))
-  nest = as.logical(nest)
-  psu = as.character(call$ids)[-1]
-  strata = as.character(call$strata)[-1]
-  weight = as.character(call$weights)[-1]
+  sdes = data.table(psu = sur$cluster[,1],
+                    weight = 1/sur$prob,
+                    strata = sur$strata[,1],
+                    sampsize = sur$fpc$sampsize[,1]
+                    )[, `_id` := .I]
 
-  if(!is.null(call$probs)) stop('dtsurvey does not use probs. Use weights instead')
-  if(!is.null(call$fpc)) stop('dtsurvey does not use fpc')
-  if(psu %in% c('0','1')) psu = NULL
+  DT = data.table::data.table(sur$variables)
+  DT[, `_id` := .I]
 
-  dtsurvey(DT = sur$variables,
-           psu = psu,
-           strata = strata,
-           weight = weight,
-           nest = nest)
+  data.table::setattr(DT, 'sdes', sdes)
+  data.table::setattr(DT, 'stype', 'svydt')
 
+  setattr(DT, 'class', c('dtsurvey', class(DT)))
+
+  return(DT)
 }
 
 
