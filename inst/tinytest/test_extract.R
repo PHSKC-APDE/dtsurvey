@@ -26,3 +26,11 @@ expect_equal(fake[, mean(num)], fake_sur[, mean(num)])
 expect_equal(fake[, mean(num)], fake_sur[, smean(num)])
 expect_equal(fake[, weighted.mean(num, weight2)], fake_sur2[, smean(num)])
 expect_equal(fake_sur2[logi==FALSE, smean(num, ids = `_id`)], fake_sur2[logi==FALSE, smean(num)])
+
+
+#is ID sticky
+a = 'logi'
+fake_sur[, .(psu, get(a))]
+fake_sur[strata >5, .(psu, get(a))]
+
+fake_sur[strata>5, smean(num)]
