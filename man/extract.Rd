@@ -5,7 +5,7 @@
 \alias{[.dtsurvey}
 \title{Custom extract function (or subset or whatever) for dtsurveys. A loose wrapper over `[.data.table`}
 \usage{
-\method{[}{dtsurvey}(x, i, j, by, ...)
+\method{[}{dtsurvey}(x, i, j, by, ..., drop = NULL)
 }
 \arguments{
 \item{x}{a dtsurvey object}
@@ -17,6 +17,8 @@
 \item{by}{by in the data.table format}
 
 \item{...}{extra options passed to data table}
+
+\item{drop}{used to make dplyr things work nice. should generally be ignored}
 }
 \description{
 Custom extract function (or subset or whatever) for dtsurveys. A loose wrapper over `[.data.table`

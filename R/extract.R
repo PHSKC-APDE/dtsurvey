@@ -6,6 +6,7 @@
 #' @param ... extra options passed to data table
 #' @param drop used to make dplyr things work nice. should generally be ignored
 #' @export
+#' @importFrom data.table is.data.table setkey
 #' @name extract
 "[.dtsurvey" <- function(x, i, j, by, ..., drop = NULL){
 
