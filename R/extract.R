@@ -53,7 +53,22 @@
   }
 
   mc[[1]] <- quote(data.table:::`[.data.table`)
+  # browser()
+
   res = eval.parent(mc)
+
+  #if _id is not returned, do another pass to go fetch it
+  # TODO: Check how much of a slowdown this is-- especially with bys
+  # This could be funky if people go much beyond i, j, by,
+  # It might also not work with the new env option
+  if(is.data.table(res) && !'`_id`' %in% (names(res))){
+
+    ids = mc[['j']] <- quote(`_id`)
+    ids = eval.parent(mc)
+
+    res[['_id']] <- ids
+
+  }
 
   return(res)
 
