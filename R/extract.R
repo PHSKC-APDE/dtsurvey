@@ -63,8 +63,11 @@
   # It might also not work with the new env option
   if(is.data.table(res) && !'`_id`' %in% (names(res))){
 
-    ids = mc[['j']] <- quote(`_id`)
+    ids = mc[['j']] <- quote(.(`_id`)) #Use a list instead
     ids = eval.parent(mc)
+
+    #add a check to extract the ids-- if the return object is number, pass that along, otherwise, pass the lists
+    stop('Look at things')
 
     res[['_id']] <- ids
 
