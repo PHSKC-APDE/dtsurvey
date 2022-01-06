@@ -3,12 +3,15 @@
 #' @param i i in the data.table format
 #' @param j j in the data.table format
 #' @param by by in the data.table format
-#' @param ... extra options passed to data table
-#' @param drop used to make dplyr things work nice. should generally be ignored
+#' @param keyby keyby in the data.table format
+#' @param with with in the data.table format
+#' @param .SDcols .SDcols in the data.table format
+#' @param drop unused by dtsurvey. Ignore it like you would for data.table
+#' @param env Use as you would for a data.table. Warning-- it might not activate the special code here that adds `_id` to smean and stotal calls.
 #' @export
 #' @importFrom data.table is.data.table setkey
 #' @name extract
-"[.dtsurvey" <- function(x, i, j, by, ..., drop = NULL){
+"[.dtsurvey" <- function(x, i, j, by, keyby, with = TRUE, .SDcols, drop = NULL, env = NULL){
 
 
   #if being called by a function that is not data.table aware, borrow the extract logic from data.frame (code used from data.table)
@@ -63,7 +66,7 @@
   # It might also not work with the new env option
   if(is.data.table(res) && !'`_id`' %in% (names(res))){
 
-    ids = mc[['j']] <- quote(.(`_id`)) #Use a list instead
+    ids = mc[['j']] <- quote(`_id`) #Use a list instead
     ids = eval.parent(mc)
 
     #add a check to extract the ids-- if the return object is number, pass that along, otherwise, pass the lists
