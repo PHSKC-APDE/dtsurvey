@@ -61,7 +61,7 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
       ret$se = sur_se(ret$v, input_type = 'var', svyrep_attributes = svyrep_attributes,
                       sv = sv, ids = ids, st = st)
 
-      if(length(ret$se)==0) ret$se = NA_real_
+      if(length(ret$se)==0 || all(is.na(ret$result)) || all(is.nan(ret$result))) ret$se = NA_real_
     }
 
     if('ci' %in% var_type){

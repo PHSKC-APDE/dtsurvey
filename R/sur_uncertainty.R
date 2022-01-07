@@ -210,7 +210,7 @@ sur_ci <- function(a, b = 'sur_mean', ab_type = 'raw', ci_part = 'both', ci_meth
   }
 
   if(all(is.na(res))){
-    ci = matrix(c(NA, NA), nrow = 1)
+    ci = matrix(c(NA_real_, NA_real_), nrow = 1)
   }else{
 
 

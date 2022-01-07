@@ -57,6 +57,7 @@ sur_mean.factor = function(x, na.rm = T, as_list = FALSE , sv, ids, st, ...){
   }
 
 
+  #I think next method probably could work here
   r = sur_mean.default(x = x, na.rm = na.rm, as_list = as_list, sv = sv, ids = ids, st = st)
 
 
