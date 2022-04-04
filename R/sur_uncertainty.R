@@ -114,7 +114,11 @@ repdes_var <- function(x, type = 'mean', ids, sv, svyrep_attributes){
 
     #calculate the variance
     #If all the data is NA, no need to warn about that
-    if(NCOL(replicate_results) == 0){
+    if(all(is.na(replicate_results)) || all(is.nan(replicate_results))){
+
+      v = matrix(NA, nrow = NROW(replicate_results), ncol = NCOL(replicate_results))
+
+    } else if(NCOL(replicate_results) == 0){
       v <- suppressWarnings(survey::svrVar(replicate_results,
                           svyrep_attributes$scaledata$scale,
                           svyrep_attributes$scaledata$rscales,

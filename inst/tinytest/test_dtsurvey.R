@@ -242,3 +242,12 @@ fs2 = fs2[sample(1:nrow(fs2), nrow(fs2), replace = F)]
 
 expect_equivalent(fs1[, smean(num), keyby = fact], fs2[, smean(num), keyby = fact])
 
+#0s in the weights
+fake2 = copy(fake)
+fake2[logi == T, weight :=0]
+fake_sur2 = dtsurvey(fake2, psu = 'psu', strata = 'strata', weight = 'weight', nest = T)
+
+r33.1 = fake_sur2[, smean(fact_na), logi]
+r33.2 = fake_sur[, smean(fact_na), logi]
+expect_true(r33.1[logi == TRUE, all(is.na(V1))])
+expect_equivalent(r33.1[logi == FALSE], r33.2[logi == FALSE])
