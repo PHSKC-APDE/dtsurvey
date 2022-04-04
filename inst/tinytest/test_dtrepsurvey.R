@@ -201,3 +201,20 @@ r27.2 = rbindlist(r27.2)[, levels := as.character(levs)]
 setorder(r27.2, levels)
 expect_equivalent(r27.1, r27.2)
 
+#weights of 0
+apicopy = copy(apiclus1)
+apicopy$pw2 = apicopy$pw
+apicopy$pw2[apicopy$stype == 'H'] = 0
+apc<-svydesign(id=~dnum, weights=~pw2, data=apicopy, fpc=~fpc)
+apc = as.svrepdesign(apc)
+dtapc = dtrepsurvey(apc)
+
+#if a svyrep has only 0s as the weight for a calculation it'll throw an error
+r28.1 = expect_error(svymean(~fact_na, subset(apc, stype == 'H')))
+
+#DT survey changes this to return NaNs and NAs
+r28.2 = dtapc[, smean(fact_na, var_type = 'ci', ci_method = 'xlogit'), by = stype]
+expect_true(r28.2[stype == 'H', all(is.na(result))])
+r28.3 = dtapc[stype != 'H', smean(fact_na, var_type = 'ci', ci_method = 'xlogit'), by = stype]
+expect_equivalent(r28.2[stype != 'H'], r28.3)
+
