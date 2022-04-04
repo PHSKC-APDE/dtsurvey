@@ -23,7 +23,7 @@ if ( requireNamespace("dplyr", quietly=TRUE) ){
   expect_true(all(c('sdes', 'stype') %in% names(attributes(select(fake_sur, fact)))), 'sdes and stype are sticky')
   expect_error(mutate(fake_sur, `_id` = NULL), 'This operation is trying to modify the `_id`',info = 'Touching ID does not work')
   expect_error(mutate(fake_sur, `_id` = 1), 'This operation is trying to modify the `_id`',info = 'Touching ID does not work')
-  expect_error(group_by(fake_sur,byvar, 'group_by is not supported by dtsurvey objects', info = 'group_by is not implemented'))
+  expect_error(group_by(fake_sur,byvar), 'group_by is not supported by dtsurvey objects', info = 'group_by is not implemented')
 
 
 }

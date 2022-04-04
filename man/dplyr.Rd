@@ -8,11 +8,11 @@
 \alias{group_by.dtsurvey}
 \title{Tidyverse methods for dtsurvey objects (remove .dtsurvey suffix!)}
 \usage{
-\method{dplyr_reconstruct}{dtsurvey}(data, template)
+dplyr_reconstruct.dtsurvey(data, template)
 
 \method{select}{dtsurvey}(.data, ...)
 
-\method{dplyr_col_modify}{dtsurvey}(data, cols)
+dplyr_col_modify.dtsurvey(data, cols)
 
 \method{group_by}{dtsurvey}(...)
 }
