@@ -4,9 +4,35 @@
 #' @param j j in the data.table format
 #' @param by by in the data.table format
 #' @param ... extra options passed to data table
+#' @param drop used to make dplyr things work nice. should generally be ignored
 #' @export
+#' @importFrom data.table is.data.table setkey
 #' @name extract
-"[.dtsurvey" <- function(x, i, j, by, ...){
+"[.dtsurvey" <- function(x, i, j, by, ..., drop = NULL){
+
+
+  #if being called by a function that is not data.table aware, borrow the extract logic from data.frame (code used from data.table)
+  if (!data.table:::cedta()) {
+        # Fix for #500 (to do)
+    Nargs = nargs() - (!missing(drop))
+    if (Nargs<3L) {
+      ans = `[.data.frame`(x,i) # drop ignored anyway by DF[i]
+      # if(!names(ans) %in% '_id') ans$`_id` <- x$`_id` -- won't work for select. Will probably have to override select
+    } else if (missing(drop)){
+      ans = `[.data.frame`(x,i,j)
+      #if(!names(ans) %in% '_id') ans$`_id` = `[.data.frame`(x,i,'_id')
+    } else{
+      ans = `[.data.frame`(x,i,j,drop)
+    }
+    # added is.data.table(ans) check to fix bug #81
+    if (!missing(i) && is.data.table(ans)) setkey(ans, NULL)  # drops index too; tested by plyr::arrange test in other.Rraw
+
+    if(inherits(ans, 'data.frame')){
+      attr(ans, 'stype') = attr(x, 'stype')
+      attr(ans, 'sdes') = attr(x, 'sdes')
+    }
+    return(ans)
+  }
 
   mc <- match.call()
 
@@ -34,6 +60,7 @@
 
 }
 
+
 #logic largely borrowed from replace_dot_alias in data.table
 dtsurvey_j_calls = function(e, is_svy = TRUE, xname, st) {
   if (is.call(e) && !is.function(e[[1L]])) {
@@ -59,4 +86,6 @@ dtsurvey_j_calls = function(e, is_svy = TRUE, xname, st) {
 
   e
 }
+
+#a function to match
 
