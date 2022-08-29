@@ -24,6 +24,7 @@ if ( requireNamespace("dplyr", quietly=TRUE) ){
   expect_error(mutate(fake_sur, `_id` = NULL), 'This operation is trying to modify the `_id`',info = 'Touching ID does not work')
   expect_error(mutate(fake_sur, `_id` = 1), 'This operation is trying to modify the `_id`',info = 'Touching ID does not work')
   expect_error(group_by(fake_sur,byvar), 'group_by is not supported by dtsurvey objects', info = 'group_by is not implemented')
+  expect_true(inherits(mutate(fake_sur, var = 1), 'dtsurvey'), info = 'mutate returns dtsurvey')
 
 
 }

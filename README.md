@@ -27,7 +27,7 @@ Before survey calculations can be computed, a dataset must be declared
 as a type of `dtsurvey` object:
 
 ``` r
-library(dtsurvey)
+library(dtsurvey, quietly = TRUE)
 library('survey', quietly = TRUE) # to get access to the datasets
 ```
 
@@ -206,13 +206,13 @@ dtclus1[stype == 'E', fff := 'A']
 dtclus1[, .(smean(fff), levels(fff)), stype]
 ```
 
-    #>    stype        V1 V2
-    #> 1:     H 0.4285714  A
-    #> 2:     H 0.5714286  B
-    #> 3:     E 1.0000000  A
-    #> 4:     E 0.0000000  B
-    #> 5:     M 0.6400000  A
-    #> 6:     M 0.3600000  B
+    #>    stype   V1 V2
+    #> 1:     H 0.50  A
+    #> 2:     H 0.50  B
+    #> 3:     E 1.00  A
+    #> 4:     E 0.00  B
+    #> 5:     M 0.68  A
+    #> 6:     M 0.32  B
 
 ``` r
 #NAs in the factor seem to work alright
@@ -220,13 +220,13 @@ dtclus1[stype == 'M' & fff == 'A', fff := NA]
 dtclus1[, .(smean(fff), levels(fff)), stype]
 ```
 
-    #>    stype        V1 V2
-    #> 1:     H 0.4285714  A
-    #> 2:     H 0.5714286  B
-    #> 3:     E 1.0000000  A
-    #> 4:     E 0.0000000  B
-    #> 5:     M 0.0000000  A
-    #> 6:     M 1.0000000  B
+    #>    stype  V1 V2
+    #> 1:     H 0.5  A
+    #> 2:     H 0.5  B
+    #> 3:     E 1.0  A
+    #> 4:     E 0.0  B
+    #> 5:     M 0.0  A
+    #> 6:     M 1.0  B
 
 ``` r
 #factors with ses and cis
@@ -235,13 +235,13 @@ dtclus1[, .(smean(fff), levels(fff)), stype]
 dtclus1[, smean(fff, var_type = c('se', 'ci')), stype]
 ```
 
-    #>    stype    result         se     lower     upper levels
-    #> 1:     H 0.4285714 0.09564504 0.2024068 0.6547360      A
-    #> 2:     H 0.5714286 0.09564504 0.3452640 0.7975932      B
-    #> 3:     E 1.0000000 0.00000000 1.0000000 1.0000000      A
-    #> 4:     E 0.0000000 0.00000000 0.0000000 0.0000000      B
-    #> 5:     M 0.0000000 0.00000000 0.0000000 0.0000000      A
-    #> 6:     M 1.0000000 0.00000000 1.0000000 1.0000000      B
+    #>    stype result        se     lower     upper levels
+    #> 1:     H    0.5 0.1383208 0.1729232 0.8270768      A
+    #> 2:     H    0.5 0.1383208 0.1729232 0.8270768      B
+    #> 3:     E    1.0 0.0000000 1.0000000 1.0000000      A
+    #> 4:     E    0.0 0.0000000 0.0000000 0.0000000      B
+    #> 5:     M    0.0 0.0000000 0.0000000 0.0000000      A
+    #> 6:     M    1.0 0.0000000 1.0000000 1.0000000      B
 
 When a CI is needed for proportions, additional methods of for
 calculating CIs are available
