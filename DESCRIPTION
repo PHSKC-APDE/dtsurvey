@@ -1,6 +1,6 @@
 Package: dtsurvey
 Title: Survey Analysis Using data.table For SPEEEEEED
-Version: 0.0.1.6
+Version: 0.0.1.7
 Authors@R: 
     person(given = "Daniel",
            family = "Casey",
