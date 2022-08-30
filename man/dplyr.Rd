@@ -6,18 +6,18 @@
 \alias{select.dtsurvey}
 \alias{dplyr_col_modify.dtsurvey}
 \alias{group_by.dtsurvey}
-\title{Tidyverse methods for dtsurvey objects (remove .dtsurvey suffix!)}
+\title{Tidyverse methods for dtsurvey objects. `_id` and attributes are sticky, use \link{as.data.frame} to let \code{dplyr}'s own methods drop them. Use these methods without the .dtsurvey suffix and after loading the tidyverse package with the generic (or after loading package tidyverse).}
 \usage{
 dplyr_reconstruct.dtsurvey(data, template)
 
-\method{select}{dtsurvey}(.data, ...)
+select.dtsurvey(.data, ...)
 
 dplyr_col_modify.dtsurvey(data, cols)
 
-\method{group_by}{dtsurvey}(...)
+group_by.dtsurvey(...)
 }
 \arguments{
-\item{.data}{data object of class \link{sf}}
+\item{.data}{data.frame object}
 
 \item{...}{other arguments}
 }

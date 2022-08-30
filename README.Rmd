@@ -6,7 +6,7 @@ output: github_document
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
+  collapse = FALSE,
   comment = "#>",
   fig.path = "man/figures/README-",
   out.width = "100%"
@@ -33,7 +33,7 @@ devtools::install_github("PHSKC-APDE/dtsurvey")
 Before survey calculations can be computed, a dataset must be declared as a type of `dtsurvey` object:
 
 ```{r example}
-library(dtsurvey)
+library(dtsurvey, quietly = TRUE)
 library('survey', quietly = TRUE) # to get access to the datasets
 data(api)
 
