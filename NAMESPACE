@@ -3,6 +3,7 @@
 S3method("[",dtsurvey)
 S3method(dtrepsurvey,data.frame)
 S3method(dtrepsurvey,svyrep.design)
+S3method(merge,dtsurvey)
 S3method(smean,character)
 S3method(smean,default)
 S3method(stotal,character)
