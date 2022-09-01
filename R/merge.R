@@ -9,11 +9,12 @@ merge.dtsurvey <- function(x,y,...){
 
   r = NextMethod()
 
-  idchk = r[, `_id`]
-  if(length(idchk) != length(unique(idchk))){
-    stop('Merge resulted in duplication of values in `_id`. This will break/muck up survey calculations.')
+  if('_id' %in% names(r)){
+    idchk = r[, `_id`]
+    if(length(idchk) != length(unique(idchk))){
+      stop('Merge resulted in duplication of values in `_id`. This will break/muck up survey calculations.')
+    }
   }
-
   ratts = attributes(r)
 
   attributes(r) <- append(ratts, atts[!names(atts) %in% names(ratts)])

@@ -30,3 +30,17 @@ new2 = merge(fake_sur, rhs[40:50,], by = 'id')
 expect_true(all(names(attributes(fake_sur)) %in% names(attributes(new2))))
 expect_true(all.equal(attr(fake_sur, 'sdes'), attr(new2, 'sdes')))
 expect_true(nrow(new2) == length(40:50))
+
+# aggregate and then merge
+# since dtsurvey can be sticky and the `_id` uniqueness check is not always required
+a1 = fake_sur[, .(c1 = mean(num)), fact]
+a2 = fake_sur[, .(c2 = mean(logi)), fact]
+
+expect_true(inherits(a1, 'dtsurvey'))
+expect_true(inherits(a2, 'dtsurvey'))
+a3 = merge(a1,a2, by = 'fact')
+a3 = data.table(a3)
+chk = merge(fake[, .(c1 = mean(num)), fact],
+            fake[, .(c2 = mean(logi)), fact],
+            by = 'fact')
+expect_equal(a3,chk)
