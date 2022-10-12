@@ -34,10 +34,14 @@ dplyr_col_modify.dtsurvey <- function(data, cols){
 
   #check to see if `_id` is being used
   cols_used = attr(cols,'used')
-  if(!'_id' %in% names(cols_used) || cols_used['_id']){
-    stop('This operation is trying to modify the `_id` column in this dtsurvey. The `_id` column should not be modified because it will screw things up when doing survey calculations.')
-  }
 
+  if(is.na(cols_used['_id'])){
+    stop('somehow the `_id` columns has gone missing. Either you are setting it to NULL or something else has gone wrong (e.g. a merge resulting in _id.x and _id.y')
+  } else{
+    if(cols_used['_id']){
+      stop('This operation is trying to modify the `_id` column in this dtsurvey. The `_id` column should not be modified because it will screw things up when doing survey calculations.')
+    }
+  }
   NextMethod()
 }
 
