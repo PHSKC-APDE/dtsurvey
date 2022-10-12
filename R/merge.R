@@ -14,6 +14,15 @@ merge.dtsurvey <- function(x,y,...){
     if(length(idchk) != length(unique(idchk))){
       stop('Merge resulted in duplication of values in `_id`. This will break/muck up survey calculations.')
     }
+  }else{
+
+    if('_id.y' %in% names(r)){
+      warning('removed/fixed `_id.x` and `_id.y` problem')
+      r[, '_id.y' := NULL]
+      data.table::setnames(r, '_id.x', '_id')
+    }else{
+      warning('resulting dtsurvey object does not have `_id` column')
+    }
   }
   ratts = attributes(r)
 

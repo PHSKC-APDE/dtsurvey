@@ -38,9 +38,15 @@ a2 = fake_sur[, .(c2 = mean(logi)), fact]
 
 expect_true(inherits(a1, 'dtsurvey'))
 expect_true(inherits(a2, 'dtsurvey'))
-a3 = merge(a1,a2, by = 'fact')
+expect_warning(a3 <- merge(a1,a2, by = 'fact'))
 a3 = data.table(a3)
 chk = merge(fake[, .(c1 = mean(num)), fact],
             fake[, .(c2 = mean(logi)), fact],
             by = 'fact')
 expect_equal(a3,chk)
+
+#id.x and id.y issue
+b1 = fake_sur[, .(num, `_id`, id)]
+b2 = fake_sur[, .(logi, `_id`, id)]
+expect_warning(b3 <- merge(b1,b2, by = 'id'))
+expect_true(all(names(b3) %in% c('id', '_id', 'num', 'logi')))
