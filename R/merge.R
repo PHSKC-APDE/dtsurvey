@@ -25,8 +25,12 @@ merge.dtsurvey <- function(x,y,...){
     }
   }
   ratts = attributes(r)
+  ratts = atts[!names(atts) %in% names(ratts)]
 
-  attributes(r) <- append(ratts, atts[!names(atts) %in% names(ratts)])
+  for(a in seq_along(ratts)){
+    data.table::setattr(r, names(ratts)[a], ratts[[a]])
+
+  }
 
   r
 

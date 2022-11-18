@@ -1,5 +1,8 @@
 #' Tidyverse methods for dtsurvey objects. `_id` and attributes are sticky, use \link{as.data.frame} to let \code{dplyr}'s own methods drop them. Use these methods without the .dtsurvey suffix and after loading the tidyverse package with the generic (or after loading package tidyverse).
 #' @param .data data.frame object
+#' @param template template object to reconstruct
+#' @param cols cols to keep
+#' @param data data.frame object
 #' @param ... other arguments
 #' @name dplyr
 NULL

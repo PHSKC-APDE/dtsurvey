@@ -17,9 +17,15 @@ dplyr_col_modify.dtsurvey(data, cols)
 group_by.dtsurvey(...)
 }
 \arguments{
+\item{data}{data.frame object}
+
+\item{template}{template object to reconstruct}
+
 \item{.data}{data.frame object}
 
 \item{...}{other arguments}
+
+\item{cols}{cols to keep}
 }
 \description{
 Tidyverse methods for dtsurvey objects. `_id` and attributes are sticky, use \link{as.data.frame} to let \code{dplyr}'s own methods drop them. Use these methods without the .dtsurvey suffix and after loading the tidyverse package with the generic (or after loading package tidyverse).
