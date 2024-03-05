@@ -2,7 +2,7 @@
 #'
 #' @param x vector. Vector of values to compute a weighted mean over
 #' @param na.rm logical. Determines whether NAs are excluded from the analysis
-#' @param var_type character. Report variability as one or more of: standard error ("se", default) and confidence interval ("ci")
+#' @param var_type character. Report variability as one or more of: standard error ("se", default), confidence interval ("ci") and variance-covariance matrix ('vcov')
 #' @param level numeric. A value in the range of (0, 1) denoting what level of confidence the CI should be
 #' @param ci_method character. Determines how the ci (if requested via \code{var_type}) should be calculated
 #'                  Options beside "mean" are only relevant for proportion (e.g. logical or values).
@@ -96,7 +96,7 @@ smean.default = function(x, na.rm = T, var_type = 'none', ci_method = 'mean',lev
       ret$upper = retci[,2]
     }
 
-    ret$v <- NULL #don't return the vcov matrix back
+    if(!'vcov' %in% var_type) ret$v <- NULL #don't return the vcov matrix back
 
     if(wasfactor) ret$levels = names(ret$result)
 
@@ -184,7 +184,7 @@ stotal.default = function(x, na.rm = T, var_type = 'none', level = .95, use_df =
       ret$upper = retci[,2]
     }
 
-    ret$v <- NULL #don't return the vcov matrix back
+    if(!'vcov' %in% var_type) ret$v <- NULL #don't return the vcov matrix back
 
     if(wasfactor) ret$levels = names(ret$result)
 
