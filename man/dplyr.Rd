@@ -6,15 +6,15 @@
 \alias{select.dtsurvey}
 \alias{dplyr_col_modify.dtsurvey}
 \alias{group_by.dtsurvey}
-\title{Tidyverse methods for dtsurvey objects. `_id` and attributes are sticky, use \link{as.data.frame} to let \code{dplyr}'s own methods drop them. Use these methods without the .dtsurvey suffix and after loading the tidyverse package with the generic (or after loading package tidyverse).}
+\title{Tidyverse methods for dtsurvey objects. \verb{_id} and attributes are sticky, use \code{\link[=as.data.frame]{as.data.frame()}} to let \code{dplyr}'s own methods drop them. Use these methods without the .dtsurvey suffix and after loading the tidyverse package with the generic (or after loading package tidyverse).}
 \usage{
-dplyr_reconstruct.dtsurvey(data, template)
+\method{dplyr_reconstruct}{dtsurvey}(data, template)
 
-select.dtsurvey(.data, ...)
+\method{select}{dtsurvey}(.data, ...)
 
-dplyr_col_modify.dtsurvey(data, cols)
+\method{dplyr_col_modify}{dtsurvey}(data, cols)
 
-group_by.dtsurvey(...)
+\method{group_by}{dtsurvey}(...)
 }
 \arguments{
 \item{data}{data.frame object}
@@ -28,10 +28,11 @@ group_by.dtsurvey(...)
 \item{cols}{cols to keep}
 }
 \description{
-Tidyverse methods for dtsurvey objects. `_id` and attributes are sticky, use \link{as.data.frame} to let \code{dplyr}'s own methods drop them. Use these methods without the .dtsurvey suffix and after loading the tidyverse package with the generic (or after loading package tidyverse).
+Tidyverse methods for dtsurvey objects. \verb{_id} and attributes are sticky, use \code{\link[=as.data.frame]{as.data.frame()}} to let \code{dplyr}'s own methods drop them. Use these methods without the .dtsurvey suffix and after loading the tidyverse package with the generic (or after loading package tidyverse).
 }
 \details{
 \code{dplyr_reconstruct} Add the sdes and stype attributes back on so dtsurvey aggregation function still work
 
 \code{select} keeps the id column regardless whether it is selected or not; to deselect it, first pipe through \code{as.data.frame} to let dplyr's own \code{select} drop it.
 }
+\keyword{internal}
