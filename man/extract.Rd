@@ -3,7 +3,7 @@
 \name{extract}
 \alias{extract}
 \alias{[.dtsurvey}
-\title{Custom extract function (or subset or whatever) for dtsurveys. A loose wrapper over `[.data.table`}
+\title{Custom extract function (or subset or whatever) for dtsurveys. A loose wrapper over \verb{[.data.table}}
 \usage{
 \method{[}{dtsurvey}(x, i, j, by, ..., drop = NULL)
 }
@@ -21,5 +21,5 @@
 \item{drop}{used to make dplyr things work nice. should generally be ignored}
 }
 \description{
-Custom extract function (or subset or whatever) for dtsurveys. A loose wrapper over `[.data.table`
+Custom extract function (or subset or whatever) for dtsurveys. A loose wrapper over \verb{[.data.table}
 }

@@ -24,7 +24,7 @@ sur_ci(
 
 \item{b}{Either a vcov matrix from sur_var OR one of 'sur_total' or 'sur_mean'}
 
-\item{ab_type}{character. One of "agg" or "raw". If agg, `a` is the result and `b` is the corresponding vcov matrix. If 'raw', `a` is the vector to compute `b` on (e.g. `b`(`a`))}
+\item{ab_type}{character. One of "agg" or "raw". If agg, \code{a} is the result and \code{b} is the corresponding vcov matrix. If 'raw', \code{a} is the vector to compute \code{b} on (e.g. \code{b}(\code{a}))}
 
 \item{ci_part}{character. One of 'lower', 'upper', 'both'. Determines what part of the ci should be returned}
 
@@ -36,7 +36,7 @@ sur_ci(
 
 \item{denom}{numeric. Only useful/used when ci_method == 'unweighted_binary'. Denominator (or N) for prop.test}
 
-\item{na.rm}{logical. Passed to `b` when `ab_type` = 'raw'}
+\item{na.rm}{logical. Passed to \code{b} when \code{ab_type} = 'raw'}
 
 \item{sv}{data.table. Survey vars data.table}
 

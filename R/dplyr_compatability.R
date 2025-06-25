@@ -1,4 +1,4 @@
-#' Tidyverse methods for dtsurvey objects. `_id` and attributes are sticky, use \link{as.data.frame} to let \code{dplyr}'s own methods drop them. Use these methods without the .dtsurvey suffix and after loading the tidyverse package with the generic (or after loading package tidyverse).
+#' Tidyverse methods for dtsurvey objects. `_id` and attributes are sticky, use [as.data.frame()] to let `dplyr`'s own methods drop them. Use these methods without the .dtsurvey suffix and after loading the tidyverse package with the generic (or after loading package tidyverse).
 #' @param .data data.frame object
 #' @param template template object to reconstruct
 #' @param cols cols to keep
@@ -8,7 +8,11 @@
 NULL
 
 #' @name dplyr
-#' @details \code{dplyr_reconstruct} Add the sdes and stype attributes back on so dtsurvey aggregation function still work
+#' @details `dplyr_reconstruct` Add the sdes and stype attributes back on so dtsurvey aggregation function still work
+#' @importFrom dplyr dplyr_reconstruct
+#' @keywords internal
+#' @export
+#' @method dplyr_reconstruct dtsurvey
 dplyr_reconstruct.dtsurvey = function(data, template) {
 
   attr(data, 'stype') = attr(template, 'stype')
@@ -21,7 +25,11 @@ dplyr_reconstruct.dtsurvey = function(data, template) {
 
 
 #' @name dplyr
-#' @details \code{select} keeps the id column regardless whether it is selected or not; to deselect it, first pipe through \code{as.data.frame} to let dplyr's own \code{select} drop it.
+#' @details `select` keeps the id column regardless whether it is selected or not; to deselect it, first pipe through `as.data.frame` to let dplyr's own `select` drop it.
+#' @importFrom dplyr select
+#' @keywords internal
+#' @export
+#' @method select dtsurvey
 select.dtsurvey <- function(.data, ...) {
   #code largely borrowed from sf package
 
@@ -33,6 +41,8 @@ select.dtsurvey <- function(.data, ...) {
 }
 
 #' @name dplyr
+#' @importFrom dplyr dplyr_col_modify
+#' @keywords internal
 dplyr_col_modify.dtsurvey <- function(data, cols){
 
   #check to see if `_id` is being used
@@ -49,6 +59,10 @@ dplyr_col_modify.dtsurvey <- function(data, cols){
 }
 
 #' @name dplyr
+#' @importFrom dplyr group_by
+#' @keywords internal
+#' @export
+#' @method group_by dtsurvey
 group_by.dtsurvey = function(...){
   stop('group_by is not supported by dtsurvey objects. Consider converting the dtsurvey into a tbl_svy (from srvyr package) doing data mungunging under that framework and then convert back to a dtsurvey object once you are done (e.g. as.dtsurvey or as.dtrepsurvey).')
 }

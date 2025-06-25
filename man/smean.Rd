@@ -33,7 +33,7 @@ smean(x, ...)
 
 \item{na.rm}{logical. Determines whether NAs are excluded from the analysis}
 
-\item{var_type}{character. Report variability as one or more of: standard error ("se", default) and confidence interval ("ci")}
+\item{var_type}{character. Report variability as one or more of: standard error ("se", default), confidence interval ("ci") and variance-covariance matrix ('vcov')}
 
 \item{ci_method}{character. Determines how the ci (if requested via \code{var_type}) should be calculated
 Options beside "mean" are only relevant for proportion (e.g. logical or values).
@@ -44,11 +44,11 @@ When the method is 'mean', the results should match \code{survey::svymean} while
 \item{use_df}{logical. Should the estimated degrees of freedom by used to calculate CIs? Default is TRUE. FALSE implies df = Inf.
 \code{confint(survey::svymean())} uses Inf as a default while \code{confint(survey::svyciprop)} uses \code{degf(design)}}
 
-\item{ids}{numeric. indices which are being computed. Can be generally omitted and will be added to the call via `[.dtsurvey`}
+\item{ids}{numeric. indices which are being computed. Can be generally omitted and will be added to the call via \verb{[.dtsurvey}}
 
 \item{sv}{data.table. Data.table of psu, strata, weight and the like to properly do survey statistics.}
 
-\item{st}{character. type of survey dataset being analyzed. Can be generally omitted and will be added to the call via `[.dtsurvey`}
+\item{st}{character. type of survey dataset being analyzed. Can be generally omitted and will be added to the call via \verb{[.dtsurvey}}
 }
 \value{
 a vector or a list (the latter likely converted into a data.table) containing the results
@@ -58,5 +58,5 @@ Calculate the survey mean
 }
 \details{
 If var_type is "none", a vector is returned. For factors, the names of the vector correspond to the levels. When var_type is not "none" a named list is returned (and then likely converted into a data.table).
-         The list (which should be named) is ordered in the following manner (by slot): result, se, lower, upper, levels.
+The list (which should be named) is ordered in the following manner (by slot): result, se, lower, upper, levels.
 }

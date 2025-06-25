@@ -345,7 +345,7 @@ ci_xlogit = function(x, vcov, level, df, st){
 #' CI of a proportion via score method
 #' @param success numeric. Vector of counts
 #' @param N numeric. Single number of vector of N such that success/N = proportions
-#' @param level numeric [0-1]. Confidence level.
+#' @param level numeric \[0-1\]. Confidence level.
 #' @importFrom stats prop.test
 ci_score = function(success, N = sum(success), level = .95){
   stopifnot(length(N) == length(success) || length(N) == 1)
