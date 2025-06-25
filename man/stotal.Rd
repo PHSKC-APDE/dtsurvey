@@ -32,11 +32,11 @@ stotal(x, ...)
 
 \item{use_df}{logical. Should the estimated degrees of freedom by used to calculate CIs? Default is FALSE (different from \code{smean}. FALSE implies df = Inf.}
 
-\item{ids}{numeric. indices which are being computed. Can be generally omitted and will be added to the call via `[.dtsurvey`}
+\item{ids}{numeric. indices which are being computed. Can be generally omitted and will be added to the call via \verb{[.dtsurvey}}
 
 \item{sv}{data.table. Data.table of psu, strata, weight and the like to properly do survey statistics.}
 
-\item{st}{character. type of survey dataset being analyzed. Can be generally omitted and will be added to the call via `[.dtsurvey`}
+\item{st}{character. type of survey dataset being analyzed. Can be generally omitted and will be added to the call via \verb{[.dtsurvey}}
 }
 \value{
 a vector or a list (the latter likely converted into a data.table) containing the results
@@ -46,6 +46,6 @@ Calculate the survey total
 }
 \details{
 If var_type is "none", a vector is returned. For factors, the names of the vector correspond to the levels. It should also be ordered in that way
-         In that case a list/data.table is returned with a column for the result and a column specifying the levels. When var_type is not "none" a named list is returned (and then likely converted into a data.table).
-         The list (which should be named) is ordered in the following manner (by slot): result, se, lower, upper, levels -- when requested.
+In that case a list/data.table is returned with a column for the result and a column specifying the levels. When var_type is not "none" a named list is returned (and then likely converted into a data.table).
+The list (which should be named) is ordered in the following manner (by slot): result, se, lower, upper, levels -- when requested.
 }
